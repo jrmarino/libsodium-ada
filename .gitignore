@@ -1,4 +1,6 @@
-build/*
+build
+run
+libsodium-1.0.10-mingw
 
 # Object file
 *.o
