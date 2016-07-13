@@ -10,5 +10,7 @@ project Default is
       for Default_Switches ("ada") use ("-nL", "-pL", "-M99");
    end Pretty_Printer;
 
+   for Object_Dir use "build";
+
 end Default;
 
