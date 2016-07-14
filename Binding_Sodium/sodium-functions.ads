@@ -10,14 +10,14 @@ package Sodium.Functions is
    --  Data Types  --
    ------------------
 
-   subtype Standard_Hash is String (1 .. Positive (Thin.crypto_genhash_BYTES));
-   subtype Hash_Size_Range is Positive range Positive (Thin.crypto_genhash_BYTES_MIN) ..
-                                             Positive (Thin.crypto_genhash_BYTES_MAX);
+   subtype Standard_Hash is String (1 .. Positive (Thin.crypto_generichash_BYTES));
+   subtype Hash_Size_Range is Positive range Positive (Thin.crypto_generichash_BYTES_MIN) ..
+                                             Positive (Thin.crypto_generichash_BYTES_MAX);
    subtype Any_Hash is String;
 
-   subtype Standard_Key is String (1 .. Positive (Thin.crypto_genhash_KEYBYTES));
-   subtype Key_Size_Range is Positive range Positive (Thin.crypto_genhash_KEYBYTES_MIN) ..
-                                            Positive (Thin.crypto_genhash_KEYBYTES_MAX);
+   subtype Standard_Key is String (1 .. Positive (Thin.crypto_generichash_KEYBYTES));
+   subtype Key_Size_Range is Positive range Positive (Thin.crypto_generichash_KEYBYTES_MIN) ..
+                                            Positive (Thin.crypto_generichash_KEYBYTES_MAX);
    subtype Any_Key is String;
 
    type Hash_State is private;

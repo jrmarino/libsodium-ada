@@ -57,12 +57,18 @@ package Sodium.Thin_Binding is
    crypto_generichash_blake2b_SALTBYTES     : constant NaCl_uint8 := 16;
    crypto_generichash_blake2b_PERSONALBYTES : constant NaCl_uint8 := 16;
 
-   crypto_genhash_BYTES_MIN    : NaCl_uint8 renames crypto_generichash_blake2b_BYTES_MIN;
-   crypto_genhash_BYTES        : NaCl_uint8 renames crypto_generichash_blake2b_BYTES;
-   crypto_genhash_BYTES_MAX    : NaCl_uint8 renames crypto_generichash_blake2b_BYTES_MAX;
-   crypto_genhash_KEYBYTES_MIN : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES_MIN;
-   crypto_genhash_KEYBYTES     : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES;
-   crypto_genhash_KEYBYTES_MAX : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES_MAX;
+   crypto_generichash_BYTES_MIN    : NaCl_uint8 renames crypto_generichash_blake2b_BYTES_MIN;
+   crypto_generichash_BYTES        : NaCl_uint8 renames crypto_generichash_blake2b_BYTES;
+   crypto_generichash_BYTES_MAX    : NaCl_uint8 renames crypto_generichash_blake2b_BYTES_MAX;
+   crypto_generichash_KEYBYTES_MIN : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES_MIN;
+   crypto_generichash_KEYBYTES     : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES;
+   crypto_generichash_KEYBYTES_MAX : NaCl_uint8 renames crypto_generichash_blake2b_KEYBYTES_MAX;
+
+   crypto_shorthash_siphash24_BYTES    : constant NaCl_uint8 := 8;
+   crypto_shorthash_siphash24_KEYBYTES : constant NaCl_uint8 := 16;
+
+   crypto_shorthash_BYTES    : NaCl_uint8 renames crypto_shorthash_siphash24_BYTES;
+   crypto_shorthash_KEYBYTES : NaCl_uint8 renames crypto_shorthash_siphash24_KEYBYTES;
 
    -----------------
    --  Important  --
@@ -74,27 +80,6 @@ package Sodium.Thin_Binding is
    ---------------
    --  Hashing  --
    ---------------
-
-   function crypto_generichash_bytes return IC.size_t;
-   pragma Import (C, crypto_generichash_bytes);
-
-   function crypto_generichash_bytes_min return IC.size_t;
-   pragma Import (C, crypto_generichash_bytes_min);
-
-   function crypto_generichash_bytes_max return IC.size_t;
-   pragma Import (C, crypto_generichash_bytes_max);
-
-   function crypto_generichash_keybytes return IC.size_t;
-   pragma Import (C, crypto_generichash_keybytes);
-
-   function crypto_generichash_keybytes_min return IC.size_t;
-   pragma Import (C, crypto_generichash_keybytes_min);
-
-   function crypto_generichash_keybytes_max return IC.size_t;
-   pragma Import (C, crypto_generichash_keybytes_max);
-
-   function crypto_generichash_primitive return ICS.chars_ptr;
-   pragma Import (C, crypto_generichash_primitive);
 
    function crypto_generichash (text_out : ICS.chars_ptr;
                                 outlen   : IC.size_t;
