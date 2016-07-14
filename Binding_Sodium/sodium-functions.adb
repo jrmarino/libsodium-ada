@@ -189,4 +189,28 @@ package body Sodium.Functions is
       return convert (target);
    end Multipart_Hash_Complete;
 
+
+   ------------------------
+   --  Short_Input_Hash  --
+   ------------------------
+   function Short_Input_Hash (short_data : String; key : Short_Key) return Short_Hash
+   is
+      res          : Thin.IC.int;
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_shorthash_BYTES);
+      target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
+      hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
+      text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (short_data'Length);
+      text_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (short_data);
+      key_pointer  : Thin.ICS.chars_ptr := Thin.ICS.New_String (key);
+   begin
+      res := Thin.crypto_shorthash (text_out => hash_pointer,
+                                    text_in  => text_pointer,
+                                    inlen    => text_length,
+                                    k        => key_pointer);
+      Thin.ICS.Free (text_pointer);
+      Thin.ICS.Free (key_pointer);
+      return convert (target);
+   end Short_Input_Hash;
+
+
 end Sodium.Functions;

@@ -105,4 +105,10 @@ package Sodium.Thin_Binding is
                                       outlen   : IC.size_t) return IC.int;
    pragma Import (C, crypto_generichash_final);
 
+   function crypto_shorthash (text_out : ICS.chars_ptr;
+                              text_in  : ICS.chars_ptr;
+                              inlen    : NaCl_uint64;
+                              k        : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_shorthash);
+
 end Sodium.Thin_Binding;

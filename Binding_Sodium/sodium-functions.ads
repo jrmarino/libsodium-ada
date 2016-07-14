@@ -20,6 +20,9 @@ package Sodium.Functions is
                                             Positive (Thin.crypto_generichash_KEYBYTES_MAX);
    subtype Any_Key is String;
 
+   subtype Short_Hash is String (1 .. Positive (Thin.crypto_shorthash_BYTES));
+   subtype Short_Key  is String (1 .. Positive (Thin.crypto_shorthash_KEYBYTES));
+
    type Hash_State is private;
 
    -----------------
@@ -40,6 +43,8 @@ package Sodium.Functions is
                                         output_size : Hash_Size_Range) return Hash_State;
    procedure Multipart_Append (plain_text : String; state : in out Hash_State);
    function Multipart_Hash_Complete (state : in out Hash_State) return Any_Hash;
+
+   function Short_Input_Hash (short_data : String; key : Short_Key) return Short_Hash;
 
 
 private
