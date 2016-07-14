@@ -29,10 +29,10 @@ package body Sodium.Functions is
    --  Keyless_Hash #2  --
    -----------------------
    function Keyless_Hash (plain_text  : String;
-                          Output_Size : Hash_Size_Range) return Any_Hash
+                          output_size : Hash_Size_Range) return Any_Hash
    is
       res          : Thin.IC.int;
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Output_Size);
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
       target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
       hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
       text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (plain_text'Length);
@@ -80,10 +80,10 @@ package body Sodium.Functions is
    ---------------------
    function Keyed_Hash (plain_text  : String;
                         key         : Any_Key;
-                        Output_Size : Hash_Size_Range) return Any_Hash
+                        output_size : Hash_Size_Range) return Any_Hash
    is
       res          : Thin.IC.int;
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Output_Size);
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
       target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
       hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
       text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (plain_text'Length);
@@ -118,5 +118,78 @@ package body Sodium.Functions is
       end loop;
       return result;
    end convert;
+
+
+   ----------------------------
+   --  Multipart_Hash_Start  --
+   ----------------------------
+   function Multipart_Hash_Start (output_size : Hash_Size_Range) return Hash_State
+   is
+      res    : Thin.IC.int;
+      result : Hash_State;
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
+   begin
+      res := Thin.crypto_generichash_init (state  => result.state'Unchecked_Access,
+                                           key    => Thin.ICS.Null_Ptr,
+                                           keylen => 0,
+                                           outlen => hash_length);
+      result.output_size := output_size;
+      return result;
+   end Multipart_Hash_Start;
+
+
+   ----------------------------------
+   --  Multipart_Keyed_Hash_Start  --
+   ----------------------------------
+   function Multipart_Keyed_Hash_Start (key : Any_Key;
+                                        output_size : Hash_Size_Range) return Hash_State
+   is
+      res         : Thin.IC.int;
+      result      : Hash_State;
+      hash_length : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
+      key_length  : constant Thin.IC.size_t := Thin.IC.size_t (key'Length);
+      key_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (key);
+   begin
+      res := Thin.crypto_generichash_init (state  => result.state'Unchecked_Access,
+                                           key    => key_pointer,
+                                           keylen => key_length,
+                                           outlen => hash_length);
+      Thin.ICS.Free (key_pointer);
+      result.output_size := output_size;
+      return result;
+   end Multipart_Keyed_Hash_Start;
+
+
+   ------------------------
+   --  Multipart_Append  --
+   ------------------------
+   procedure Multipart_Append (plain_text : String; state : in out Hash_State)
+   is
+      res          : Thin.IC.int;
+      text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (plain_text'Length);
+      text_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (plain_text);
+   begin
+      res := Thin.crypto_generichash_update (state   => state.state'Unchecked_Access,
+                                             text_in => text_pointer,
+                                             inlen   => text_length);
+      Thin.ICS.Free (text_pointer);
+   end Multipart_Append;
+
+
+   -------------------------------
+   --  Multipart_Hash_Complete  --
+   -------------------------------
+   function Multipart_Hash_Complete (state : in out Hash_State) return Any_Hash
+   is
+      res          : Thin.IC.int;
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (state.output_size);
+      target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
+      hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
+   begin
+      res := Thin.crypto_generichash_final (state    => state.state'Unchecked_Access,
+                                            text_out => hash_pointer,
+                                            outlen   => hash_length);
+      return convert (target);
+   end Multipart_Hash_Complete;
 
 end Sodium.Functions;

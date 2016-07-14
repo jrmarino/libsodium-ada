@@ -31,8 +31,8 @@ package Sodium.Thin_Binding is
 
    subtype crypto_generichash_state is crypto_generichash_blake2b_state;
 
-   type crypto_generichash_blake2b_state_Access is access all crypto_generichash_state;
-   pragma Convention (C, crypto_generichash_blake2b_state_Access);
+   type crypto_generichash_state_Access is access all crypto_generichash_state;
+   pragma Convention (C, crypto_generichash_state_Access);
 
    -----------------
    --  Constants  --
@@ -94,18 +94,18 @@ package Sodium.Thin_Binding is
                                 keylen   : IC.size_t) return IC.int;
    pragma Import (C, crypto_generichash);
 
-   function crypto_generichash_init (state  : crypto_generichash_blake2b_state_Access;
+   function crypto_generichash_init (state  : crypto_generichash_state_Access;
                                      key    : ICS.chars_ptr;
                                      keylen : IC.size_t;
                                      outlen : IC.size_t) return IC.int;
    pragma Import (C, crypto_generichash_init);
 
-   function crypto_generichash_update (state   : crypto_generichash_blake2b_state_Access;
+   function crypto_generichash_update (state   : crypto_generichash_state_Access;
                                        text_in : ICS.chars_ptr;
                                        inlen   : NaCl_uint64) return IC.int;
    pragma Import (C, crypto_generichash_update);
 
-   function crypto_generichash_final (state    : crypto_generichash_blake2b_state_Access;
+   function crypto_generichash_final (state    : crypto_generichash_state_Access;
                                       text_out : ICS.chars_ptr;
                                       outlen   : IC.size_t) return IC.int;
    pragma Import (C, crypto_generichash_final);
