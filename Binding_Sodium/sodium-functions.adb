@@ -213,4 +213,79 @@ package body Sodium.Functions is
    end Short_Input_Hash;
 
 
+   -------------------
+   --  Random_Word  --
+   -------------------
+   function Random_Word return Natural32
+   is
+      result : Thin.NaCl_uint32 := Thin.randombytes_random;
+   begin
+      return Natural32 (result);
+   end Random_Word;
+
+
+   ---------------------------
+   --  Random_Limited_Word  --
+   ---------------------------
+   function Random_Limited_Word (upper_bound : Natural32) return Natural32
+   is
+      upper  : Thin.NaCl_uint32 := Thin.NaCl_uint32 (upper_bound);
+      result : Thin.NaCl_uint32 := Thin.randombytes_uniform (upper);
+   begin
+      return Natural32 (result);
+   end Random_Limited_Word;
+
+
+   -------------------
+   --  Random_Salt  --
+   -------------------
+   function Random_Salt return Password_Salt
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Password_Salt'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Salt;
+
+
+   ------------------------
+   --  Random_Short_Key  --
+   ------------------------
+   function Random_Short_Key return Short_Key
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Short_Key'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Short_Key;
+
+
+   --------------------------------
+   --  Random_Standard_Hash_key  --
+   --------------------------------
+   function Random_Standard_Hash_key return Standard_Key
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Standard_Key'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Standard_Hash_key;
+
+
+   -----------------------
+   --  Random_Hash_Key  --
+   -----------------------
+   function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Key_Size);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Hash_Key;
+
+
 end Sodium.Functions;

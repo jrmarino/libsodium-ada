@@ -23,11 +23,15 @@ package Sodium.Functions is
    subtype Short_Hash is String (1 .. Positive (Thin.crypto_shorthash_BYTES));
    subtype Short_Key  is String (1 .. Positive (Thin.crypto_shorthash_KEYBYTES));
 
+   subtype Password_Salt is String (1 .. Positive (Thin.crypto_pwhash_SALTBYTES));
+
+   type Natural32 is mod 2 ** 32;
+
    type Hash_State is private;
 
-   -----------------
-   --  Functions  --
-   -----------------
+   ----------------------
+   --  Hash Functions  --
+   ----------------------
 
    function Keyless_Hash (plain_text : String) return Standard_Hash;
    function Keyless_Hash (plain_text  : String;
@@ -46,6 +50,17 @@ package Sodium.Functions is
 
    function Short_Input_Hash (short_data : String; key : Short_Key) return Short_Hash;
 
+   ---------------------
+   --  Random Things  --
+   ---------------------
+
+   function Random_Word return Natural32;
+   function Random_Limited_Word (upper_bound : Natural32) return Natural32;
+
+   function Random_Salt              return Password_Salt;
+   function Random_Short_Key         return Short_Key;
+   function Random_Standard_Hash_key return Standard_Key;
+   function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
 private
 

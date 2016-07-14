@@ -1,5 +1,6 @@
 --  Low-level C routines for Sodium Library API
 
+with System;
 with Interfaces.C.Strings;
 
 package Sodium.Thin_Binding is
@@ -12,6 +13,7 @@ package Sodium.Thin_Binding is
    ------------------
 
    type NaCl_uint64 is mod 2 ** 64;
+   type NaCl_uint32 is mod 2 ** 32;
    type NaCl_uint8  is mod 2 ** 8;
 
    type NaCl_block64 is array (Natural range <>) of NaCl_uint64;
@@ -70,6 +72,30 @@ package Sodium.Thin_Binding is
    crypto_shorthash_BYTES    : NaCl_uint8 renames crypto_shorthash_siphash24_BYTES;
    crypto_shorthash_KEYBYTES : NaCl_uint8 renames crypto_shorthash_siphash24_KEYBYTES;
 
+   crypto_pwhash_argon2i_ALG_ARGON2I13        : constant NaCl_uint8  := 1;
+   crypto_pwhash_argon2i_SALTBYTES            : constant NaCl_uint8  := 16;
+   crypto_pwhash_argon2i_STRBYTES             : constant NaCl_uint8  := 128;
+   crypto_pwhash_argon2i_STRPREFIX            : constant String      := "$argon2i$";
+   crypto_pwhash_argon2i_OPSLIMIT_INTERACTIVE : constant NaCl_uint64 := 4;
+   crypto_pwhash_argon2i_MEMLIMIT_INTERACTIVE : constant NaCl_uint64 := 33554432;
+   crypto_pwhash_argon2i_OPSLIMIT_MODERATE    : constant NaCl_uint64 := 6;
+   crypto_pwhash_argon2i_MEMLIMIT_MODERATE    : constant NaCl_uint64 := 134217728;
+   crypto_pwhash_argon2i_OPSLIMIT_SENSITIVE   : constant NaCl_uint64 := 8;
+   crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE   : constant NaCl_uint64 := 536870912;
+
+   crypto_pwhash_ALG_DEFAULT        : NaCl_uint8  renames crypto_pwhash_argon2i_ALG_ARGON2I13;
+   crypto_pwhash_SALTBYTES          : NaCl_uint8  renames crypto_pwhash_argon2i_SALTBYTES;
+   crypto_pwhash_STRBYTES           : NaCl_uint8  renames crypto_pwhash_argon2i_STRBYTES;
+   crypto_pwhash_STRPREFIX          : String      renames crypto_pwhash_argon2i_STRPREFIX;
+   crypto_pwhash_OPSLIMIT_MODERATE  : NaCl_uint64 renames crypto_pwhash_argon2i_OPSLIMIT_MODERATE;
+   crypto_pwhash_MEMLIMIT_MODERATE  : NaCl_uint64 renames crypto_pwhash_argon2i_MEMLIMIT_MODERATE;
+   crypto_pwhash_OPSLIMIT_SENSITIVE : NaCl_uint64 renames crypto_pwhash_argon2i_OPSLIMIT_SENSITIVE;
+   crypto_pwhash_MEMLIMIT_SENSITIVE : NaCl_uint64 renames crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE;
+   crypto_pwhash_OPSLIMIT_INTERACTIVE : NaCl_uint64
+                                        renames crypto_pwhash_argon2i_OPSLIMIT_INTERACTIVE;
+   crypto_pwhash_MEMLIMIT_INTERACTIVE : NaCl_uint64
+                                        renames crypto_pwhash_argon2i_MEMLIMIT_INTERACTIVE;
+
    -----------------
    --  Important  --
    -----------------
@@ -110,5 +136,38 @@ package Sodium.Thin_Binding is
                               inlen    : NaCl_uint64;
                               k        : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_shorthash);
+
+   function crypto_pwhash (text_out  : ICS.chars_ptr;
+                           outlen    : NaCl_uint64;
+                           passwd    : ICS.chars_ptr;
+                           passwdlen : NaCl_uint64;
+                           salt      : ICS.chars_ptr;
+                           opslimit  : NaCl_uint64;
+                           memlimit  : IC.size_t;
+                           alg       : IC.int) return IC.int;
+   pragma Import (C, crypto_pwhash);
+
+--     function crypto_pwhash_str (
+--     int crypto_pwhash_str(char out[crypto_pwhash_STRBYTES],
+--                        const char * const passwd,
+--                        unsigned long long passwdlen,
+--                        unsigned long long opslimit,
+--                        size_t memlimit);
+--  int crypto_pwhash_str_verify(const char str[crypto_pwhash_STRBYTES],
+--                               const char * const passwd,
+--                               unsigned long long passwdlen);
+
+   ---------------------
+   --  Random Things  --
+   ---------------------
+
+   procedure randombytes_buf (buf : System.Address; size : IC.size_t);
+   pragma Import (C, randombytes_buf);
+
+   function randombytes_random return NaCl_uint32;
+   pragma Import (C, randombytes_random);
+
+   function randombytes_uniform (upper_bound : NaCl_uint32) return NaCl_uint32;
+   pragma Import (C, randombytes_uniform);
 
 end Sodium.Thin_Binding;
