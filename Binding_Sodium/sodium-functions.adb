@@ -8,8 +8,8 @@ package body Sodium.Functions is
    function Keyless_Hash (plain_text : String) return Standard_Hash
    is
       res          : Thin.IC.int;
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Standard_Hash'Length + 1);
-      target       : aliased Thin.IC.char_array := (1 .. hash_length => '_');
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Standard_Hash'Length);
+      target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
       hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
       text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (plain_text'Length);
       text_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (plain_text);
@@ -21,7 +21,7 @@ package body Sodium.Functions is
                                       key      => Thin.ICS.Null_Ptr,
                                       keylen   => 0);
       Thin.ICS.Free (text_pointer);
-      return Thin.ICS.Value (Item => hash_pointer, Length => hash_length);
+      return convert (target);
    end Keyless_Hash;
 
 
@@ -32,9 +32,9 @@ package body Sodium.Functions is
                           Output_Size : Hash_Size_Range) return Any_Hash
    is
       res          : Thin.IC.int;
-      target       : Any_Hash := (1 .. Output_Size => '_');
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (target'Length);
-      hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (target);
+      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (Output_Size);
+      target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
+      hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
       text_length  : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (plain_text'Length);
       text_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (plain_text);
    begin
@@ -44,10 +44,8 @@ package body Sodium.Functions is
                                       inlen    => text_length,
                                       key      => Thin.ICS.Null_Ptr,
                                       keylen   => 0);
-      target := Thin.ICS.Value (Item => hash_pointer, Length => hash_length);
       Thin.ICS.Free (text_pointer);
-      Thin.ICS.Free (hash_pointer);
-      return target;
+      return convert (target);
    end Keyless_Hash;
 
 
@@ -107,5 +105,22 @@ package body Sodium.Functions is
       Thin.ICS.Free (key_pointer);
       return target;
    end Keyed_Hash;
+
+
+   ---------------
+   --  convert  --
+   ---------------
+   function convert (data : Thin.IC.char_array) return String
+   is
+      use type Thin.IC.size_t;
+      result : String (1 .. data'Length);
+      arrow : Thin.IC.size_t := data'First;
+   begin
+      for z in result'Range loop
+         result (z) := Character (data (arrow));
+         arrow := arrow + 1;
+      end loop;
+      return result;
+   end convert;
 
 end Sodium.Functions;
