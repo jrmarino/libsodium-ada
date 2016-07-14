@@ -127,13 +127,12 @@ package body Sodium.Functions is
    is
       res    : Thin.IC.int;
       result : Hash_State;
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
    begin
+      result.hash_length := Thin.IC.size_t (output_size);
       res := Thin.crypto_generichash_init (state  => result.state'Unchecked_Access,
                                            key    => Thin.ICS.Null_Ptr,
                                            keylen => 0,
-                                           outlen => hash_length);
-      result.output_size := output_size;
+                                           outlen => result.hash_length);
       return result;
    end Multipart_Hash_Start;
 
@@ -146,16 +145,15 @@ package body Sodium.Functions is
    is
       res         : Thin.IC.int;
       result      : Hash_State;
-      hash_length : constant Thin.IC.size_t := Thin.IC.size_t (output_size);
       key_length  : constant Thin.IC.size_t := Thin.IC.size_t (key'Length);
       key_pointer : Thin.ICS.chars_ptr := Thin.ICS.New_String (key);
    begin
+      result.hash_length := Thin.IC.size_t (output_size);
       res := Thin.crypto_generichash_init (state  => result.state'Unchecked_Access,
                                            key    => key_pointer,
                                            keylen => key_length,
-                                           outlen => hash_length);
+                                           outlen => result.hash_length);
       Thin.ICS.Free (key_pointer);
-      result.output_size := output_size;
       return result;
    end Multipart_Keyed_Hash_Start;
 
@@ -182,13 +180,12 @@ package body Sodium.Functions is
    function Multipart_Hash_Complete (state : in out Hash_State) return Any_Hash
    is
       res          : Thin.IC.int;
-      hash_length  : constant Thin.IC.size_t := Thin.IC.size_t (state.output_size);
-      target       : aliased Thin.IC.char_array := (1 .. hash_length => Thin.IC.nul);
+      target       : aliased Thin.IC.char_array := (1 .. state.hash_length => Thin.IC.nul);
       hash_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (target'Unchecked_Access);
    begin
       res := Thin.crypto_generichash_final (state    => state.state'Unchecked_Access,
                                             text_out => hash_pointer,
-                                            outlen   => hash_length);
+                                            outlen   => state.hash_length);
       return convert (target);
    end Multipart_Hash_Complete;
 

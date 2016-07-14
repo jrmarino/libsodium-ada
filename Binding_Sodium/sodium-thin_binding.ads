@@ -17,9 +17,6 @@ package Sodium.Thin_Binding is
    type NaCl_block64 is array (Natural range <>) of NaCl_uint64;
    type NaCl_block8  is array (Natural range <>) of NaCl_uint8;
 
-   pragma Pack (NaCl_block64);
-   pragma Pack (NaCl_block8);
-
    type crypto_generichash_blake2b_state is record
       h         : NaCl_block64 (0 .. 7);
       t         : NaCl_block64 (0 .. 1);
@@ -27,7 +24,20 @@ package Sodium.Thin_Binding is
       buf       : NaCl_block8  (0 .. 255);
       buflen    : IC.size_t;
       last_node : NaCl_uint8;
+      padding64 : NaCl_block8  (0 .. 26);
    end record;
+
+   for crypto_generichash_blake2b_state use record
+      h         at 0 range   0 * 8 ..  64 * 8 - 1;
+      t         at 0 range  64 * 8 ..  80 * 8 - 1;
+      f         at 0 range  80 * 8 ..  96 * 8 - 1;
+      buf       at 0 range  96 * 8 .. 352 * 8 - 1;
+      buflen    at 0 range 352 * 8 .. 356 * 8 - 1;
+      last_node at 0 range 356 * 8 .. 357 * 8 - 1;
+      padding64 at 0 range 357 * 8 .. 384 * 8 - 1;
+   end record;
+   for crypto_generichash_blake2b_state'Size use 384 * 8;
+   for crypto_generichash_blake2b_state'Alignment use 64;
 
    subtype crypto_generichash_state is crypto_generichash_blake2b_state;
 

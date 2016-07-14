@@ -45,7 +45,7 @@ package Sodium.Functions is
 private
 
    type Hash_State is record
-      output_size : Hash_Size_Range;
+      hash_length : Thin.IC.size_t;
       state       : aliased Thin.crypto_generichash_state;
    end record;
 
