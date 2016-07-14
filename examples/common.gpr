@@ -1,0 +1,26 @@
+project Common is
+
+   type Os_Type is ("unix", "windows");
+   Opsys : Os_Type := external ("opsys", "windows");
+
+   package Compiler is
+      case Opsys is
+         when "windows" =>
+            for Default_Switches ("C") use ("-I", "../../../libsodium-1.0.10-mingw/libsodium-win32/include");
+         when "unix" =>
+            null;
+      end case;
+   end Compiler;
+
+   package Linker is
+      NaCl := ("../../libsodium-1.0.10-mingw/libsodium-win32/lib/libsodium.a");
+      case Opsys is
+         when "windows" =>
+            for Default_Switches ("C")   use NaCl;
+            for Default_Switches ("Ada") use NaCl;
+         when "unix" =>
+            null;
+      end case;
+   end Linker;
+
+end Common;
