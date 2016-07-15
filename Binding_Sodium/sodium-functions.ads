@@ -93,6 +93,7 @@ package Sodium.Functions is
    ---------------
 
    function As_Hexidecimal (binary : String) return String;
+   function As_Binary (hexidecimal : String; ignore : String := "") return String;
 
    ------------------
    --  Exceptions  --
@@ -100,6 +101,7 @@ package Sodium.Functions is
 
    Sodium_Out_Of_Memory       : exception;
    Sodium_Already_Initialized : exception;
+   Sodium_Invalid_Input       : exception;
 
 private
 

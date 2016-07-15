@@ -12,9 +12,11 @@ begin
    end if;
 
    declare
-      hash    : constant String := Short_Input_Hash (message, key);
+      hash : constant String := Short_Input_Hash (message, key);
+      hex  : constant String := As_Hexidecimal (hash);
    begin
       Put_Line ("text: " & message);
       Put_Line ("hash: " & As_Hexidecimal (hash));
+      Put_Line ("Convert twice successfully: " & Boolean (As_Binary (hex) = hash)'Img);
    end;
 end Demo_Ada;

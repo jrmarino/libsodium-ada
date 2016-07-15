@@ -515,4 +515,83 @@ package body Sodium.Functions is
       return product;
    end As_Hexidecimal;
 
+
+   -----------------
+   --  As_Binary  --
+   -----------------
+   function As_Binary (hexidecimal : String; ignore : String := "") return String
+   is
+      subtype octet is String (1 .. 2);
+      function decvalue (byte : octet) return Character;
+
+      pass1     : String := (1 .. hexidecimal'Length => ASCII.NUL);
+      real_size : Natural := 0;
+      adiff : constant Natural := Character'Pos ('a') - Character'Pos ('A');
+      found : Boolean;
+
+      function decvalue (byte : octet) return Character
+      is
+         position : Natural := 0;
+         zero  : constant Natural := Character'Pos ('0');
+         alpha : constant Natural := Character'Pos ('A') - 10;
+         sixt  : Character renames byte (1);
+         ones  : Character renames byte (2);
+      begin
+         case sixt is
+            when '0' .. '9' => position := (Character'Pos (sixt) - zero) * 16;
+            when 'A' .. 'F' => position := (Character'Pos (sixt) - alpha) * 16;
+            when others =>     null;
+         end case;
+         case byte (2) is
+            when '0' .. '9' => position := position + (Character'Pos (ones) - zero);
+            when 'A' .. 'F' => position := position + (Character'Pos (ones) - alpha);
+            when others =>     null;
+         end case;
+         return Character'Val (position);
+      end decvalue;
+
+   begin
+      for z in hexidecimal'Range loop
+         case hexidecimal (z) is
+            when '0' .. '9' | 'A' .. 'F' =>
+               real_size := real_size + 1;
+               pass1 (real_size) := hexidecimal (z);
+            when 'a' .. 'f' =>
+               real_size := real_size + 1;
+               pass1 (real_size) := Character'Val (Character'Pos (hexidecimal (z)) - adiff);
+            when others =>
+               found := False;
+               for y in ignore'Range loop
+                  if hexidecimal (z) = ignore (y) then
+                     found := True;
+                     exit;
+                  end if;
+               end loop;
+               if not found then
+                  raise Sodium_Invalid_Input
+                    with "As_Binary - illegal character: " & hexidecimal (z);
+               end if;
+         end case;
+      end loop;
+      if real_size = 0 then
+         raise Sodium_Invalid_Input
+           with "As_Binary - no hexidecimal digits found: " & hexidecimal;
+      end if;
+      if real_size mod 2 /= 0 then
+         raise Sodium_Invalid_Input
+           with "As_Binary - odd number of hexidecimal digits: " & hexidecimal;
+      end if;
+      declare
+         bin_size : constant Natural := real_size / 2;
+         product  : String (1 .. bin_size);
+         index    : Natural;
+      begin
+         for z in 1 .. bin_size loop
+            index := z * 2 - 1;
+            product (z) := decvalue (pass1 (index .. index + 1));
+         end loop;
+         return product;
+      end;
+   end As_Binary;
+
 end Sodium.Functions;
