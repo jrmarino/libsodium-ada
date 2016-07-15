@@ -217,26 +217,26 @@ package Sodium.Thin_Binding is
    --  Public Key Signatures  --
    -----------------------------
 
-   function crypto_sign_keypair (pk : out ICS.chars_ptr; sk : out ICS.chars_ptr) return IC.int;
+   function crypto_sign_keypair (pk : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_keypair);
 
-   function crypto_sign_seed_keypair (pk   : out ICS.chars_ptr;
-                                      sk   : out ICS.chars_ptr;
+   function crypto_sign_seed_keypair (pk   : ICS.chars_ptr;
+                                      sk   : ICS.chars_ptr;
                                       seed : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_seed_keypair);
 
-   function crypto_sign (sm : out ICS.chars_ptr; smlen : NaCl_uint64;
-                         m  : ICS.chars_ptr;     mlen  : NaCl_uint64;
+   function crypto_sign (sm : ICS.chars_ptr; smlen : NaCl_uint64;
+                         m  : ICS.chars_ptr; mlen  : NaCl_uint64;
                          sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign);
 
-   function crypto_sign_open (m  : out ICS.chars_ptr; mlen  : NaCl_uint64;
-                              sm : ICS.chars_ptr;     smlen : NaCl_uint64;
+   function crypto_sign_open (m  : ICS.chars_ptr; mlen  : NaCl_uint64;
+                              sm : ICS.chars_ptr; smlen : NaCl_uint64;
                               pk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_open);
 
-   function crypto_sign_detached (sig : out ICS.chars_ptr; siglen : out NaCl_uint64;
-                                  m   : ICS.chars_ptr;     mlen   : NaCl_uint64;
+   function crypto_sign_detached (sig : ICS.chars_ptr; siglen : ICS.chars_ptr;
+                                  m   : ICS.chars_ptr; mlen   : NaCl_uint64;
                                   sk  : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_detached);
 

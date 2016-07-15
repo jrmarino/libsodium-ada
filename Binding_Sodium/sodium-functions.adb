@@ -630,6 +630,7 @@ package body Sodium.Functions is
       sign_key_secret := convert (secret_key_tank);
    end Generate_Sign_Keys;
 
+
    -----------------------------
    --  Generate_Sign_Keys #2  --
    -----------------------------
@@ -647,8 +648,7 @@ package body Sodium.Functions is
       secret_key_tank : aliased Thin.IC.char_array := (1 .. secret_key_size => Thin.IC.nul);
       secret_pointer  : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
-      seed_size       : Thin.IC.size_t := Thin.IC.size_t (seed'Length);
-      seed_tank       : aliased Thin.IC.char_array := (1 .. seed_size => Thin.IC.nul);
+      seed_tank       : aliased Thin.IC.char_array := convert (seed);
       seed_pointer    : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (seed_tank'Unchecked_Access);
    begin
@@ -677,10 +677,9 @@ package body Sodium.Functions is
       result_size     : Thin.IC.size_t := Thin.IC.size_t (Signature'Length);
       result_tank     : aliased Thin.IC.char_array := (1 .. result_size => Thin.IC.nul);
       result_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (result_tank'Unchecked_Access);
-      siglen          : Thin.NaCl_uint64;
    begin
       res := Thin.crypto_sign_detached (sig    => result_pointer,
-                                        siglen => siglen,
+                                        siglen => Thin.ICS.Null_Ptr,
                                         m      => message_pointer,
                                         mlen   => message_size,
                                         sk     => secret_pointer);
@@ -712,11 +711,7 @@ package body Sodium.Functions is
                                                m    => message_pointer,
                                                mlen => message_size,
                                                pk   => sendkey_pointer);
-      if res = 0 then
-         return True;
-      else
-         return False;
-      end if;
+      return (res = 0);
    end Signature_Matches;
 
 end Sodium.Functions;
