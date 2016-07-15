@@ -298,14 +298,14 @@ package body Sodium.Functions is
    --------------------------------
    --  Random_Standard_Hash_key  --
    --------------------------------
-   function Random_Standard_Hash_key return Standard_Key
+   function Random_Standard_Hash_Key return Standard_Key
    is
       bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Standard_Key'Last);
       buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
    begin
       Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
       return convert (buffer);
-   end Random_Standard_Hash_key;
+   end Random_Standard_Hash_Key;
 
 
    -----------------------
@@ -319,6 +319,19 @@ package body Sodium.Functions is
       Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
       return convert (buffer);
    end Random_Hash_Key;
+
+
+   ----------------------------
+   --  Random_Sign_Key_seed  --
+   ----------------------------
+   function Random_Sign_Key_seed return Sign_Key_Seed
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Sign_Key_Seed'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Sign_Key_seed;
 
 
    ---------------------------
@@ -593,5 +606,117 @@ package body Sodium.Functions is
          return product;
       end;
    end As_Binary;
+
+
+   -----------------------------
+   --  Generate_Sign_Keys #1  --
+   -----------------------------
+   procedure Generate_Sign_Keys (sign_key_public : out Public_Sign_Key;
+                                 sign_key_secret : out Secret_Sign_Key)
+   is
+      res             : Thin.IC.int;
+      public_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_sign_PUBLICKEYBYTES);
+      public_key_tank : aliased Thin.IC.char_array := (1 .. public_key_size => Thin.IC.nul);
+      public_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (public_key_tank'Unchecked_Access);
+
+      secret_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_sign_SECRETKEYBYTES);
+      secret_key_tank : aliased Thin.IC.char_array := (1 .. secret_key_size => Thin.IC.nul);
+      secret_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_sign_keypair (pk => public_pointer, sk => secret_pointer);
+      sign_key_public := convert (public_key_tank);
+      sign_key_secret := convert (secret_key_tank);
+   end Generate_Sign_Keys;
+
+   -----------------------------
+   --  Generate_Sign_Keys #2  --
+   -----------------------------
+   procedure Generate_Sign_Keys (sign_key_public : out Public_Sign_Key;
+                                 sign_key_secret : out Secret_Sign_Key;
+                                 seed            : Sign_Key_Seed)
+   is
+      res             : Thin.IC.int;
+      public_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_sign_PUBLICKEYBYTES);
+      public_key_tank : aliased Thin.IC.char_array := (1 .. public_key_size => Thin.IC.nul);
+      public_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (public_key_tank'Unchecked_Access);
+
+      secret_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_sign_SECRETKEYBYTES);
+      secret_key_tank : aliased Thin.IC.char_array := (1 .. secret_key_size => Thin.IC.nul);
+      secret_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
+      seed_size       : Thin.IC.size_t := Thin.IC.size_t (seed'Length);
+      seed_tank       : aliased Thin.IC.char_array := (1 .. seed_size => Thin.IC.nul);
+      seed_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (seed_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_sign_seed_keypair (pk   => public_pointer,
+                                            sk   => secret_pointer,
+                                            seed => seed_pointer);
+      sign_key_public := convert (public_key_tank);
+      sign_key_secret := convert (secret_key_tank);
+   end Generate_Sign_Keys;
+
+
+   ------------------------
+   --  Obtain_Signature  --
+   ------------------------
+   function Obtain_Signature (plain_text_message : String;
+                              sign_key_secret    : Secret_Sign_Key) return Signature
+   is
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (plain_text_message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      secret_tank     : aliased Thin.IC.char_array := convert (sign_key_secret);
+      secret_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (secret_tank'Unchecked_Access);
+
+      result_size     : Thin.IC.size_t := Thin.IC.size_t (Signature'Length);
+      result_tank     : aliased Thin.IC.char_array := (1 .. result_size => Thin.IC.nul);
+      result_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (result_tank'Unchecked_Access);
+      siglen          : Thin.NaCl_uint64;
+   begin
+      res := Thin.crypto_sign_detached (sig    => result_pointer,
+                                        siglen => siglen,
+                                        m      => message_pointer,
+                                        mlen   => message_size,
+                                        sk     => secret_pointer);
+      return convert (result_tank);
+   end Obtain_Signature;
+
+
+   -------------------------
+   --  Signature_Matches  --
+   -------------------------
+   function Signature_Matches (plain_text_message : String;
+                               sender_signature   : Signature;
+                               sender_sign_key    : Public_Sign_Key) return Boolean
+   is
+      use type Thin.IC.int;
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (plain_text_message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      sendsig_tank    : aliased Thin.IC.char_array := convert (sender_signature);
+      sendsig_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (sendsig_tank'Unchecked_Access);
+      sendkey_tank    : aliased Thin.IC.char_array := convert (sender_sign_key);
+      sendkey_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (sendkey_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_sign_verify_detached (sig  => sendsig_pointer,
+                                               m    => message_pointer,
+                                               mlen => message_size,
+                                               pk   => sendkey_pointer);
+      if res = 0 then
+         return True;
+      else
+         return False;
+      end if;
+   end Signature_Matches;
 
 end Sodium.Functions;

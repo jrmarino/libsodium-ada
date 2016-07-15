@@ -27,6 +27,11 @@ package Sodium.Functions is
    subtype Passkey_Size_Range is Positive range 16 .. 64;
    subtype Any_Password_Key is String;
 
+   subtype Public_Sign_Key is String (1 .. Positive (Thin.crypto_sign_PUBLICKEYBYTES));
+   subtype Secret_Sign_Key is String (1 .. Positive (Thin.crypto_sign_SECRETKEYBYTES));
+   subtype Sign_Key_Seed   is String (1 .. Positive (Thin.crypto_sign_SEEDBYTES));
+   subtype Signature       is String (1 .. Positive (Thin.crypto_sign_BYTES));
+
    type Natural32 is mod 2 ** 32;
 
    type Data_Criticality is (online_interactive, moderate, highly_sensitive);
@@ -69,7 +74,8 @@ package Sodium.Functions is
 
    function Random_Salt              return Password_Salt;
    function Random_Short_Key         return Short_Key;
-   function Random_Standard_Hash_key return Standard_Key;
+   function Random_Standard_Hash_Key return Standard_Key;
+   function Random_Sign_Key_seed     return Sign_Key_Seed;
    function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
    --------------------------
@@ -94,6 +100,24 @@ package Sodium.Functions is
 
    function As_Hexidecimal (binary : String) return String;
    function As_Binary (hexidecimal : String; ignore : String := "") return String;
+
+   -----------------------------
+   --  Public Key Signatures  --
+   -----------------------------
+
+   procedure Generate_Sign_Keys (sign_key_public : out Public_Sign_Key;
+                                 sign_key_secret : out Secret_Sign_Key);
+
+   procedure Generate_Sign_Keys (sign_key_public : out Public_Sign_Key;
+                                 sign_key_secret : out Secret_Sign_Key;
+                                 seed            : Sign_Key_Seed);
+
+   function Obtain_Signature    (plain_text_message : String;
+                                 sign_key_secret    : Secret_Sign_Key) return Signature;
+
+   function Signature_Matches   (plain_text_message : String;
+                                 sender_signature   : Signature;
+                                 sender_sign_key    : Public_Sign_Key) return Boolean;
 
    ------------------
    --  Exceptions  --

@@ -235,7 +235,7 @@ package Sodium.Thin_Binding is
                               pk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_open);
 
-   function crypto_sign_detached (sig : out ICS.chars_ptr; siglen : NaCl_uint64;
+   function crypto_sign_detached (sig : out ICS.chars_ptr; siglen : out NaCl_uint64;
                                   m   : ICS.chars_ptr;     mlen   : NaCl_uint64;
                                   sk  : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_sign_detached);
