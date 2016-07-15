@@ -9,6 +9,10 @@ int main () {
    unsigned char salt[crypto_pwhash_SALTBYTES] = "123456789+123456";
    unsigned char key[KEY_LEN + 1] = {0};
 
+   if (sodium_init() != 0) {
+      return -1;
+   }
+
    if (crypto_pwhash
     (key, KEY_LEN, PASSWORD, strlen(PASSWORD), salt,
      crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE,

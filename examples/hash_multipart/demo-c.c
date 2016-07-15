@@ -12,6 +12,10 @@ int main () {
    unsigned char key[crypto_generichash_KEYBYTES] = "123456789 123456789 123456789 12";
    crypto_generichash_state state;
 
+   if (sodium_init() != 0) {
+      return -1;
+   }
+
    printf ("text 1: %s\ntext 2: %s\n", MESSAGE_PART1, MESSAGE_PART2);
    crypto_generichash_init(&state, NULL, 0, crypto_generichash_BYTES);
    crypto_generichash_update(&state, MESSAGE_PART1, MESSAGE_PART1_LEN);

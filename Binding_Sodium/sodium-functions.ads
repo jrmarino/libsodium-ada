@@ -34,6 +34,12 @@ package Sodium.Functions is
    type Hash_State is private;
 
    ----------------------
+   --  Initialization  --
+   ----------------------
+
+   function initialize_sodium_library return Boolean;
+
+   ----------------------
    --  Hash Functions  --
    ----------------------
 
@@ -86,7 +92,8 @@ package Sodium.Functions is
    --  Exceptions  --
    ------------------
 
-   Sodium_Out_Of_Memory : exception;
+   Sodium_Out_Of_Memory       : exception;
+   Sodium_Already_Initialized : exception;
 
 private
 

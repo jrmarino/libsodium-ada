@@ -11,6 +11,11 @@ is
    hash      : Standard_Hash;
    hash_len  : constant Hash_Size_Range := hash'Length;
 begin
+   if not initialize_sodium_library then
+      Put_Line ("Initialization failed");
+      return;
+   end if;
+
    state := Multipart_Hash_Start (hash_len);
    Multipart_Append (message_1, state);
    Multipart_Append (message_2, state);

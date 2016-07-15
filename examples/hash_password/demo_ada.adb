@@ -5,14 +5,19 @@ procedure Demo_Ada
 is
    password : constant String := "Correct Horse Battery Staple";
    salt     : constant String := "123456789+123456";
-   passkey  : constant String := Derive_Password_Key (password => password, salt => salt);
 begin
+   if not initialize_sodium_library then
+      Put_Line ("Initialization failed");
+      return;
+   end if;
+
    Put_Line ("password: " & password);
-   Put_Line ("pass key: " & passkey);
    declare
-      hash : constant Any_Hash :=
+     passkey : constant String := Derive_Password_Key (password => password, salt => salt);
+      hash   : constant Any_Hash :=
          Generate_Password_Hash (criticality => highly_sensitive, password => password);
    begin
+      Put_Line ("pass key: " & passkey);
       Put_Line ("hash: " & hash);
       if Password_Hash_Matches (hash => hash, password => password) then
          Put_Line ("Hash verification passed");

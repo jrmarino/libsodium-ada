@@ -6,6 +6,11 @@ is
    upper_bound : Natural32 := 16#FFF#;
    Custom_Size : Key_Size_Range := 48;
 begin
+   if not initialize_sodium_library then
+      Put_Line ("Initialization failed");
+      return;
+   end if;
+
    Put_Line ("    Full random: " & Random_Word'Img);
    Put_Line ("Limited to $FFF: " & Random_Limited_Word (upper_bound)'Img);
    Put_Line ("    Random salt: " & Random_Salt);

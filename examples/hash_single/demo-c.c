@@ -11,6 +11,10 @@ int main () {
    unsigned char maxhash[crypto_generichash_BYTES_MAX + 1] = {0};
    unsigned char key[crypto_generichash_KEYBYTES] = "123456789 123456789 123456789 12";
 
+   if (sodium_init() != 0) {
+      return -1;
+   }
+
    printf ("text: %s\n", MESSAGE);
    crypto_generichash(hash, crypto_generichash_BYTES,
                       MESSAGE, MESSAGE_LEN,

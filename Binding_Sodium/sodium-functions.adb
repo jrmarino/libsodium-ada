@@ -2,6 +2,22 @@
 
 package body Sodium.Functions is
 
+   ---------------------------------
+   --  initialize_sodium_library  --
+   ---------------------------------
+   function initialize_sodium_library return Boolean
+   is
+      use type Thin.IC.int;
+      res : Thin.IC.int;
+   begin
+      res := Thin.sodium_init;
+      if res = 1 then
+         raise Sodium_Already_Initialized;
+      end if;
+      return (res = 0);
+   end initialize_sodium_library;
+
+
    -----------------------
    --  Keyless_Hash #1  --
    -----------------------
