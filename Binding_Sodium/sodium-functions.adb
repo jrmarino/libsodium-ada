@@ -326,7 +326,6 @@ package body Sodium.Functions is
       passkey_tank     : aliased Thin.IC.char_array := (1 .. passkey_size_C => Thin.IC.nul);
       passkey_pointer  : Thin.ICS.chars_ptr :=
                          Thin.ICS.To_Chars_Ptr (passkey_tank'Unchecked_Access);
-      salt_size        : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (salt'Length);
       salt_tank        : aliased Thin.IC.char_array := convert (salt);
       salt_pointer     : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (salt_tank'Unchecked_Access);
    begin
@@ -357,7 +356,7 @@ package body Sodium.Functions is
             raise Sodium_Out_Of_Memory with "Derive_Password_Key";
          end if;
       end;
-      return convert (password_tank);
+      return convert (passkey_tank);
    end Derive_Password_Key;
 
 end Sodium.Functions;
