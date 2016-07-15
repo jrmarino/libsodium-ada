@@ -21,8 +21,13 @@ int main () {
        return -1;
     }
 
+   size_t hex_maxlen = KEY_LEN * 2 + 1;
+   unsigned char hex[hex_maxlen];
+
+   sodium_bin2hex (hex, hex_maxlen, key, KEY_LEN);
+
    printf ("password: %s\n", PASSWORD);
-   printf ("pass key: %s\n", key);
+   printf ("pass key: %s\n", hex);
 
    char hashed_password[crypto_pwhash_STRBYTES + 1] = {0};
 

@@ -88,6 +88,12 @@ package Sodium.Functions is
 
    function Password_Hash_Matches (hash : Any_Hash; password : String) return Boolean;
 
+   ---------------
+   --  Helpers  --
+   ---------------
+
+   function As_Hexidecimal (binary : String) return String;
+
    ------------------
    --  Exceptions  --
    ------------------

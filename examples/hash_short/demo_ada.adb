@@ -15,6 +15,6 @@ begin
       hash    : constant String := Short_Input_Hash (message, key);
    begin
       Put_Line ("text: " & message);
-      Put_Line ("hash: " & hash);
+      Put_Line ("hash: " & As_Hexidecimal (hash));
    end;
 end Demo_Ada;

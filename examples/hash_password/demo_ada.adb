@@ -17,7 +17,7 @@ begin
       hash   : constant Any_Hash :=
          Generate_Password_Hash (criticality => highly_sensitive, password => password);
    begin
-      Put_Line ("pass key: " & passkey);
+      Put_Line ("pass key: " & As_Hexidecimal (passkey));
       Put_Line ("hash: " & hash);
       if Password_Hash_Matches (hash => hash, password => password) then
          Put_Line ("Hash verification passed");

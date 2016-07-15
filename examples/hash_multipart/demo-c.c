@@ -22,12 +22,20 @@ int main () {
    crypto_generichash_update(&state, MESSAGE_PART2, MESSAGE_PART2_LEN);
    crypto_generichash_final(&state, hash, crypto_generichash_BYTES);
 
-   printf ("hash: %s\n", hash);
+   size_t hex_maxlen = crypto_generichash_BYTES * 2 + 1;
+   unsigned char hex[hex_maxlen];
+
+   sodium_bin2hex (hex, hex_maxlen, hash, crypto_generichash_BYTES);
+
+   printf ("hash: %s\n", hex);
    crypto_generichash_init(&state, key, sizeof key, crypto_generichash_BYTES);
    crypto_generichash_update(&state, MESSAGE_PART1, MESSAGE_PART1_LEN);
    crypto_generichash_update(&state, MESSAGE_PART2, MESSAGE_PART2_LEN);
    crypto_generichash_final(&state, hash, crypto_generichash_BYTES);
-   printf ("\nkeyed hash: %s\n", hash);
+
+   sodium_bin2hex (hex, hex_maxlen, hash, crypto_generichash_BYTES);
+
+   printf ("keyed hash: %s\n", hex);
    printf ("size of state: %d\n", sizeof state);
    printf ("offset t %d\n", offsetof(crypto_generichash_state, t));
    printf ("offset f %d\n", offsetof(crypto_generichash_state, f));

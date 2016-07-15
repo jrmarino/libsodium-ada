@@ -23,13 +23,12 @@ begin
 
    Put_Line ("text 1: " & message_1);
    Put_Line ("text 2: " & message_2);
-   Put_Line ("hash: " & hash);
+   Put_Line ("hash: " & As_Hexidecimal (hash));
 
    state := Multipart_Keyed_Hash_Start (key, hash_len);
    Multipart_Append (message_1, state);
    Multipart_Append (message_2, state);
    hash := Multipart_Hash_Complete (state);
 
-   Put_Line ("");
-   Put_Line ("keyed hash: " & hash);
+   Put_Line ("keyed hash: " & As_Hexidecimal (hash));
 end Demo_Ada;

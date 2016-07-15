@@ -456,4 +456,63 @@ package body Sodium.Functions is
       end;
    end Password_Hash_Matches;
 
+
+   ----------------------
+   --  As_Hexidecimal  --
+   ----------------------
+   function As_Hexidecimal (binary : String) return String
+   is
+      type byte is mod 2 ** 8;
+      subtype octet is String (1 .. 2);
+      function Hex (mychar : Character) return octet;
+
+      mask0 : constant byte := 16#F#;
+      mask1 : constant byte := 16#F0#;
+      zero  : constant Natural := Character'Pos ('0');
+      alpha : constant Natural := Character'Pos ('a') - 10;
+
+      function Hex (mychar : Character) return octet
+      is
+         mybyte : byte := byte (Character'Pos (mychar));
+         val0   : byte := (mybyte and mask0);
+         val1   : byte := (mybyte and mask1);
+         result : octet;
+      begin
+         case val0 is
+            when 0 .. 9   => result (2) := Character'Val (zero + Natural (val0));
+            when 10 .. 15 => result (2) := Character'Val (alpha + Natural (val0));
+            when others => null;
+         end case;
+         case val1 is
+            when 16#00# => result (1) := '0';
+            when 16#10# => result (1) := '1';
+            when 16#20# => result (1) := '2';
+            when 16#30# => result (1) := '3';
+            when 16#40# => result (1) := '4';
+            when 16#50# => result (1) := '5';
+            when 16#60# => result (1) := '6';
+            when 16#70# => result (1) := '7';
+            when 16#80# => result (1) := '8';
+            when 16#90# => result (1) := '9';
+            when 16#A0# => result (1) := 'a';
+            when 16#B0# => result (1) := 'b';
+            when 16#C0# => result (1) := 'c';
+            when 16#D0# => result (1) := 'd';
+            when 16#E0# => result (1) := 'e';
+            when 16#F0# => result (1) := 'f';
+            when others => null;
+         end case;
+         return result;
+      end Hex;
+
+      product : String (1 .. 2 * binary'Length);
+      arrow   : Positive := 1;
+   begin
+      for z in binary'Range loop
+         product (arrow .. arrow + 1) := Hex (binary (z));
+         arrow := arrow + 2;
+      end loop;
+      return product;
+   end As_Hexidecimal;
+
 end Sodium.Functions;
