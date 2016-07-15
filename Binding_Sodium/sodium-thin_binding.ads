@@ -72,29 +72,53 @@ package Sodium.Thin_Binding is
    crypto_shorthash_BYTES    : NaCl_uint8 renames crypto_shorthash_siphash24_BYTES;
    crypto_shorthash_KEYBYTES : NaCl_uint8 renames crypto_shorthash_siphash24_KEYBYTES;
 
-   crypto_pwhash_argon2i_ALG_ARGON2I13        : constant NaCl_uint8  := 1;
+   crypto_pwhash_argon2i_ALG_ARGON2I13        : constant IC.int      := 1;
    crypto_pwhash_argon2i_SALTBYTES            : constant NaCl_uint8  := 16;
    crypto_pwhash_argon2i_STRBYTES             : constant NaCl_uint8  := 128;
    crypto_pwhash_argon2i_STRPREFIX            : constant String      := "$argon2i$";
    crypto_pwhash_argon2i_OPSLIMIT_INTERACTIVE : constant NaCl_uint64 := 4;
-   crypto_pwhash_argon2i_MEMLIMIT_INTERACTIVE : constant NaCl_uint64 := 33554432;
+   crypto_pwhash_argon2i_MEMLIMIT_INTERACTIVE : constant IC.size_t   := 33554432;
    crypto_pwhash_argon2i_OPSLIMIT_MODERATE    : constant NaCl_uint64 := 6;
-   crypto_pwhash_argon2i_MEMLIMIT_MODERATE    : constant NaCl_uint64 := 134217728;
+   crypto_pwhash_argon2i_MEMLIMIT_MODERATE    : constant IC.size_t   := 134217728;
    crypto_pwhash_argon2i_OPSLIMIT_SENSITIVE   : constant NaCl_uint64 := 8;
-   crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE   : constant NaCl_uint64 := 536870912;
+   crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE   : constant IC.size_t   := 536870912;
 
-   crypto_pwhash_ALG_DEFAULT        : NaCl_uint8  renames crypto_pwhash_argon2i_ALG_ARGON2I13;
+   crypto_pwhash_ALG_DEFAULT        : IC.int      renames crypto_pwhash_argon2i_ALG_ARGON2I13;
    crypto_pwhash_SALTBYTES          : NaCl_uint8  renames crypto_pwhash_argon2i_SALTBYTES;
    crypto_pwhash_STRBYTES           : NaCl_uint8  renames crypto_pwhash_argon2i_STRBYTES;
    crypto_pwhash_STRPREFIX          : String      renames crypto_pwhash_argon2i_STRPREFIX;
    crypto_pwhash_OPSLIMIT_MODERATE  : NaCl_uint64 renames crypto_pwhash_argon2i_OPSLIMIT_MODERATE;
-   crypto_pwhash_MEMLIMIT_MODERATE  : NaCl_uint64 renames crypto_pwhash_argon2i_MEMLIMIT_MODERATE;
+   crypto_pwhash_MEMLIMIT_MODERATE  : IC.size_t   renames crypto_pwhash_argon2i_MEMLIMIT_MODERATE;
    crypto_pwhash_OPSLIMIT_SENSITIVE : NaCl_uint64 renames crypto_pwhash_argon2i_OPSLIMIT_SENSITIVE;
-   crypto_pwhash_MEMLIMIT_SENSITIVE : NaCl_uint64 renames crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE;
+   crypto_pwhash_MEMLIMIT_SENSITIVE : IC.size_t   renames crypto_pwhash_argon2i_MEMLIMIT_SENSITIVE;
    crypto_pwhash_OPSLIMIT_INTERACTIVE : NaCl_uint64
                                         renames crypto_pwhash_argon2i_OPSLIMIT_INTERACTIVE;
-   crypto_pwhash_MEMLIMIT_INTERACTIVE : NaCl_uint64
+   crypto_pwhash_MEMLIMIT_INTERACTIVE : IC.size_t
                                         renames crypto_pwhash_argon2i_MEMLIMIT_INTERACTIVE;
+
+   crypto_box_curve25519xsalsa20poly1305_SEEDBYTES      : constant NaCl_uint8 := 32;
+   crypto_box_curve25519xsalsa20poly1305_PUBLICKEYBYTES : constant NaCl_uint8 := 32;
+   crypto_box_curve25519xsalsa20poly1305_SECRETKEYBYTES : constant NaCl_uint8 := 32;
+   crypto_box_curve25519xsalsa20poly1305_BEFORENMBYTES  : constant NaCl_uint8 := 32;
+   crypto_box_curve25519xsalsa20poly1305_NONCEBYTES     : constant NaCl_uint8 := 24;
+   crypto_box_curve25519xsalsa20poly1305_MACBYTES       : constant NaCl_uint8 := 16;
+   crypto_box_curve25519xsalsa20poly1305_BOXZEROBYTES   : constant NaCl_uint8 := 16;
+   crypto_box_curve25519xsalsa20poly1305_ZEROBYTES      : constant NaCl_uint8 :=
+     crypto_box_curve25519xsalsa20poly1305_BOXZEROBYTES +
+       crypto_box_curve25519xsalsa20poly1305_MACBYTES;
+
+   crypto_box_SEEDBYTES    : NaCl_uint8 renames crypto_box_curve25519xsalsa20poly1305_SEEDBYTES;
+   crypto_box_NONCEBYTES   : NaCl_uint8 renames crypto_box_curve25519xsalsa20poly1305_NONCEBYTES;
+   crypto_box_MACBYTES     : NaCl_uint8 renames crypto_box_curve25519xsalsa20poly1305_MACBYTES;
+   crypto_box_ZEROBYTES    : NaCl_uint8 renames crypto_box_curve25519xsalsa20poly1305_ZEROBYTES;
+   crypto_box_BOXZEROBYTES : NaCl_uint8 renames crypto_box_curve25519xsalsa20poly1305_BOXZEROBYTES;
+   crypto_box_BEFORENMBYTES  : NaCl_uint8
+                               renames crypto_box_curve25519xsalsa20poly1305_BEFORENMBYTES;
+   crypto_box_PUBLICKEYBYTES : NaCl_uint8
+                               renames crypto_box_curve25519xsalsa20poly1305_PUBLICKEYBYTES;
+   crypto_box_SECRETKEYBYTES : NaCl_uint8
+                               renames crypto_box_curve25519xsalsa20poly1305_SECRETKEYBYTES;
+   crypto_box_SEALBYTES : constant NaCl_uint8 := crypto_box_PUBLICKEYBYTES + crypto_box_MACBYTES;
 
    -----------------
    --  Important  --

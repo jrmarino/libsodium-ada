@@ -24,8 +24,12 @@ package Sodium.Functions is
    subtype Short_Key  is String (1 .. Positive (Thin.crypto_shorthash_KEYBYTES));
 
    subtype Password_Salt is String (1 .. Positive (Thin.crypto_pwhash_SALTBYTES));
+   subtype Passkey_Size_Range is Positive range 16 .. 64;
+   subtype Any_Password_Key is String;
 
    type Natural32 is mod 2 ** 32;
+
+   type Data_Criticality is (online_interactive, moderate, highly_sensitive);
 
    type Hash_State is private;
 
@@ -62,6 +66,22 @@ package Sodium.Functions is
    function Random_Standard_Hash_key return Standard_Key;
    function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
+   --------------------------
+   --  Password Functions  --
+   --------------------------
+
+   function Derive_Password_Key
+     (criticality  : Data_Criticality := online_interactive;
+      passkey_size : Passkey_Size_Range := Positive (Thin.crypto_box_SEEDBYTES);
+      password     : String;
+      salt         : Password_Salt) return Any_Password_Key;
+
+   ------------------
+   --  Exceptions  --
+   ------------------
+
+   Sodium_Out_Of_Memory : exception;
+
 private
 
    type Hash_State is record
@@ -70,5 +90,6 @@ private
    end record;
 
    function convert (data : Thin.IC.char_array) return String;
+   function convert (data : String) return Thin.IC.char_array;
 
 end Sodium.Functions;

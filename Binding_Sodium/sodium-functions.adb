@@ -103,9 +103,9 @@ package body Sodium.Functions is
    end Keyed_Hash;
 
 
-   ---------------
-   --  convert  --
-   ---------------
+   ------------------
+   --  convert #1  --
+   ------------------
    function convert (data : Thin.IC.char_array) return String
    is
       use type Thin.IC.size_t;
@@ -114,6 +114,23 @@ package body Sodium.Functions is
    begin
       for z in result'Range loop
          result (z) := Character (data (arrow));
+         arrow := arrow + 1;
+      end loop;
+      return result;
+   end convert;
+
+   ------------------
+   --  convert #2  --
+   ------------------
+   function convert (data : String) return Thin.IC.char_array
+   is
+      use type Thin.IC.size_t;
+      reslen : Thin.IC.size_t := Thin.IC.size_t (data'Length);
+      result : Thin.IC.char_array (1 .. reslen);
+      arrow  : Thin.IC.size_t := 1;
+   begin
+      for z in data'Range loop
+         result (arrow) := Thin.IC.char (data (z));
          arrow := arrow + 1;
       end loop;
       return result;
@@ -287,5 +304,60 @@ package body Sodium.Functions is
       return convert (buffer);
    end Random_Hash_Key;
 
+
+   ---------------------------
+   --  Derive_Password_Key  --
+   ---------------------------
+   function Derive_Password_Key
+     (criticality  : Data_Criticality := online_interactive;
+      passkey_size : Passkey_Size_Range := Positive (Thin.crypto_box_SEEDBYTES);
+      password     : String;
+      salt         : Password_Salt) return Any_Password_Key
+   is
+      opslimit         : Thin.NaCl_uint64;
+      memlimit         : Thin.IC.size_t;
+
+      password_size    : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (password'Length);
+      password_tank    : aliased Thin.IC.char_array := convert (password);
+      password_pointer : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (password_tank'Unchecked_Access);
+      passkey_size_F   : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (passkey_size);
+      passkey_size_C   : constant Thin.IC.size_t := Thin.IC.size_t (passkey_size);
+      passkey_tank     : aliased Thin.IC.char_array := (1 .. passkey_size_C => Thin.IC.nul);
+      passkey_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (passkey_tank'Unchecked_Access);
+      salt_size        : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (salt'Length);
+      salt_tank        : aliased Thin.IC.char_array := convert (salt);
+      salt_pointer     : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (salt_tank'Unchecked_Access);
+   begin
+      case criticality is
+         when online_interactive =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_INTERACTIVE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_INTERACTIVE;
+         when moderate =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_MODERATE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_MODERATE;
+         when highly_sensitive =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_SENSITIVE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_SENSITIVE;
+      end case;
+      declare
+         use type Thin.IC.int;
+         res : Thin.IC.int;
+      begin
+         res := Thin.crypto_pwhash (text_out  => passkey_pointer,
+                                    outlen    => passkey_size_F,
+                                    passwd    => password_pointer,
+                                    passwdlen => password_size,
+                                    salt      => salt_pointer,
+                                    opslimit  => opslimit,
+                                    memlimit  => memlimit,
+                                    alg       => Thin.crypto_pwhash_ALG_DEFAULT);
+         if res /= 0 then
+            raise Sodium_Out_Of_Memory with "Derive_Password_Key";
+         end if;
+      end;
+      return convert (password_tank);
+   end Derive_Password_Key;
 
 end Sodium.Functions;
