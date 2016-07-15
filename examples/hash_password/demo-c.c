@@ -19,5 +19,23 @@ int main () {
 
    printf ("password: %s\n", PASSWORD);
    printf ("pass key: %s\n", key);
+
+   char hashed_password[crypto_pwhash_STRBYTES + 1] = {0};
+
+   if (crypto_pwhash_str
+    (hashed_password, PASSWORD, strlen(PASSWORD),
+     crypto_pwhash_OPSLIMIT_SENSITIVE, crypto_pwhash_MEMLIMIT_SENSITIVE) != 0) {
+       /* out of memory */
+       return -1;
+    }
+   printf ("hash: %s\n", hashed_password);
+
+   if (crypto_pwhash_str_verify
+    (hashed_password, PASSWORD, strlen(PASSWORD)) == 0) {
+       printf ("Hash verification passed\n");
+   } else {
+       printf ("Hash verification failed\n");
+   }
+
    return 0;
 }

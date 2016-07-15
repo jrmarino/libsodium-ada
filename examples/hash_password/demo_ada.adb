@@ -9,4 +9,15 @@ is
 begin
    Put_Line ("password: " & password);
    Put_Line ("pass key: " & passkey);
+   declare
+      hash : constant Any_Hash :=
+         Generate_Password_Hash (criticality => highly_sensitive, password => password);
+   begin
+      Put_Line ("hash: " & hash);
+      if Password_Hash_Matches (hash => hash, password => password) then
+         Put_Line ("Hash verification passed");
+      else
+         Put_Line ("Hash verification failed");
+      end if;
+   end;
 end Demo_Ada;

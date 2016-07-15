@@ -120,6 +120,13 @@ package Sodium.Thin_Binding is
                                renames crypto_box_curve25519xsalsa20poly1305_SECRETKEYBYTES;
    crypto_box_SEALBYTES : constant NaCl_uint8 := crypto_box_PUBLICKEYBYTES + crypto_box_MACBYTES;
 
+   ------------------------
+   --  New C Data Types  --
+   ------------------------
+
+   type Password_Hash_Container is array (1 .. Positive (crypto_pwhash_STRBYTES)) of IC.char;
+   pragma Convention (C, Password_Hash_Container);
+
    -----------------
    --  Important  --
    -----------------
@@ -171,15 +178,17 @@ package Sodium.Thin_Binding is
                            alg       : IC.int) return IC.int;
    pragma Import (C, crypto_pwhash);
 
---     function crypto_pwhash_str (
---     int crypto_pwhash_str(char out[crypto_pwhash_STRBYTES],
---                        const char * const passwd,
---                        unsigned long long passwdlen,
---                        unsigned long long opslimit,
---                        size_t memlimit);
---  int crypto_pwhash_str_verify(const char str[crypto_pwhash_STRBYTES],
---                               const char * const passwd,
---                               unsigned long long passwdlen);
+   function crypto_pwhash_str (text_out  : out Password_Hash_Container;
+                               passwd    : ICS.chars_ptr;
+                               passwdlen : NaCl_uint64;
+                               opslimit  : NaCl_uint64;
+                               memlimit  : IC.size_t) return IC.int;
+   pragma Import (C, crypto_pwhash_str);
+
+   function crypto_pwhash_str_verify (text_str : Password_Hash_Container;
+                                      passwd   : ICS.chars_ptr;
+                                      passwdlen : NaCl_uint64) return IC.int;
+   pragma Import (C, crypto_pwhash_str_verify);
 
    ---------------------
    --  Random Things  --

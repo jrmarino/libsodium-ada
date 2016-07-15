@@ -76,6 +76,12 @@ package Sodium.Functions is
       password     : String;
       salt         : Password_Salt) return Any_Password_Key;
 
+   function Generate_Password_Hash
+     (criticality : Data_Criticality := online_interactive;
+      password    : String) return Any_Hash;
+
+   function Password_Hash_Matches (hash : Any_Hash; password : String) return Boolean;
+
    ------------------
    --  Exceptions  --
    ------------------

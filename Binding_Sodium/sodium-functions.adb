@@ -359,4 +359,85 @@ package body Sodium.Functions is
       return convert (passkey_tank);
    end Derive_Password_Key;
 
+
+   ------------------------------
+   --  Generate_Password_Hash  --
+   ------------------------------
+   function Generate_Password_Hash (criticality : Data_Criticality := online_interactive;
+                                    password    : String) return Any_Hash
+   is
+      opslimit  : Thin.NaCl_uint64;
+      memlimit  : Thin.IC.size_t;
+      hash_tank : Thin.Password_Hash_Container;
+
+      password_size    : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (password'Length);
+      password_tank    : aliased Thin.IC.char_array := convert (password);
+      password_pointer : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (password_tank'Unchecked_Access);
+   begin
+      case criticality is
+         when online_interactive =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_INTERACTIVE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_INTERACTIVE;
+         when moderate =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_MODERATE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_MODERATE;
+         when highly_sensitive =>
+            opslimit := Thin.crypto_pwhash_OPSLIMIT_SENSITIVE;
+            memlimit := Thin.crypto_pwhash_MEMLIMIT_SENSITIVE;
+      end case;
+      declare
+         use type Thin.IC.int;
+         use type Thin.IC.char;
+         res : Thin.IC.int;
+         product : String (hash_tank'Range);
+         lastz   : Natural := 0;
+      begin
+         res := Thin.crypto_pwhash_str (text_out  => hash_tank,
+                                        passwd    => password_pointer,
+                                        passwdlen => password_size,
+                                        opslimit  => opslimit,
+                                        memlimit  => memlimit);
+         if res /= 0 then
+            raise Sodium_Out_Of_Memory with "Generate_Password_Hash";
+         end if;
+         for z in hash_tank'Range loop
+            if hash_tank (z) = Thin.IC.nul then
+               return product (product'First .. lastz);
+            end if;
+            product (z) := Character (hash_tank (z));
+            lastz := z;
+         end loop;
+         return product;
+      end;
+   end Generate_Password_Hash;
+
+
+   -----------------------------
+   --  Password_Hash_Matches  --
+   -----------------------------
+   function Password_Hash_Matches (hash : Any_Hash; password : String) return Boolean
+   is
+      hash_tank        : Thin.Password_Hash_Container := (others => Thin.IC.nul);
+      password_size    : constant Thin.NaCl_uint64 := Thin.NaCl_uint64 (password'Length);
+      password_tank    : aliased Thin.IC.char_array := convert (password);
+      password_pointer : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (password_tank'Unchecked_Access);
+      arrow            : Positive := Thin.Password_Hash_Container'First;
+   begin
+      for z in hash'Range loop
+         hash_tank (arrow) := Thin.IC.char (hash (z));
+         arrow := arrow + 1;
+      end loop;
+      declare
+         use type Thin.IC.int;
+         res : Thin.IC.int;
+      begin
+         res := Thin.crypto_pwhash_str_verify (text_str  => hash_tank,
+                                               passwd    => password_pointer,
+                                               passwdlen => password_size);
+         return (res = 0);
+      end;
+   end Password_Hash_Matches;
+
 end Sodium.Functions;
