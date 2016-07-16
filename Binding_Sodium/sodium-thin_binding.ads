@@ -1,4 +1,5 @@
---  Low-level C routines for Sodium Library API
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
 
 with System;
 with Interfaces.C.Strings;

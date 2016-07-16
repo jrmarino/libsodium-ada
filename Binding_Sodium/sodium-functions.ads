@@ -1,4 +1,5 @@
---  Thick bindings to Sodium Library
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
 
 with Sodium.Thin_Binding;
 
