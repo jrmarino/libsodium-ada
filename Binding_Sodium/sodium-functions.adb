@@ -825,8 +825,7 @@ package body Sodium.Functions is
       skey_tank       : aliased Thin.IC.char_array := convert (shared_key);
       skey_pointer    : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
-      product_size    : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_MACBYTES) +
-                                          Thin.IC.size_t (message_size);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Cipher_Length (plain_text_message));
       product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
       product_pointer : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
@@ -863,8 +862,7 @@ package body Sodium.Functions is
       skey_tank       : aliased Thin.IC.char_array := convert (sender_secret_key);
       skey_pointer    : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
-      product_size    : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_MACBYTES) +
-                                          Thin.IC.size_t (message_size);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Cipher_Length (plain_text_message));
       product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
       product_pointer : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
@@ -897,8 +895,7 @@ package body Sodium.Functions is
       skey_tank       : aliased Thin.IC.char_array := convert (shared_key);
       skey_pointer    : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
-      product_size    : Thin.IC.size_t := Thin.IC.size_t (cipher_size) -
-                                          Thin.IC.size_t (Thin.crypto_box_MACBYTES);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Clear_Text_Length (ciphertext));
       product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
       product_pointer : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
@@ -933,8 +930,7 @@ package body Sodium.Functions is
       skey_tank       : aliased Thin.IC.char_array := convert (recipient_secret_key);
       skey_pointer    : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
-      product_size    : Thin.IC.size_t := Thin.IC.size_t (cipher_size) -
-                                          Thin.IC.size_t (Thin.crypto_box_MACBYTES);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Clear_Text_Length (ciphertext));
       product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
       product_pointer : Thin.ICS.chars_ptr :=
                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
@@ -947,5 +943,23 @@ package body Sodium.Functions is
                                         sk   => skey_pointer);
       return convert (product_tank);
    end Decrypt_Message;
+
+
+   ---------------------
+   --  Cipher_Length  --
+   ---------------------
+   function Cipher_Length  (plain_text_message : String) return Positive is
+   begin
+      return plain_text_message'Length + Positive (Thin.crypto_box_MACBYTES);
+   end Cipher_Length;
+
+
+   -------------------------
+   --  Clear_Text_Length  --
+   -------------------------
+   function Clear_Text_Length (ciphertext : Encrypted_Data) return Positive is
+   begin
+      return ciphertext'Length - Positive (Thin.crypto_box_MACBYTES);
+   end Clear_Text_Length;
 
 end Sodium.Functions;

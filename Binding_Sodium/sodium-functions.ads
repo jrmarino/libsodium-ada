@@ -160,6 +160,9 @@ package Sodium.Functions is
                                  shared_key           : Box_Shared_Key;
                                  unique_nonce         : Box_Nonce) return String;
 
+   function Cipher_Length       (plain_text_message   : String) return Positive;
+   function Clear_Text_Length   (ciphertext           : Encrypted_Data) return Positive;
+
    ------------------
    --  Exceptions  --
    ------------------
