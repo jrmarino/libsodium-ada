@@ -334,6 +334,19 @@ package body Sodium.Functions is
    end Random_Sign_Key_seed;
 
 
+   --------------------
+   --  Random_Nonce  --
+   --------------------
+   function Random_Nonce return Box_Nonce
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Box_Nonce'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Nonce;
+
+
    ---------------------------
    --  Derive_Password_Key  --
    ---------------------------
@@ -713,5 +726,226 @@ package body Sodium.Functions is
                                                pk   => sendkey_pointer);
       return (res = 0);
    end Signature_Matches;
+
+
+   ----------------------------
+   --  Generate_Box_Keys #1  --
+   ----------------------------
+   procedure Generate_Box_Keys  (box_key_public : out Public_Box_Key;
+                                 box_key_secret : out Secret_Box_Key)
+   is
+      res             : Thin.IC.int;
+      public_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_PUBLICKEYBYTES);
+      public_key_tank : aliased Thin.IC.char_array := (1 .. public_key_size => Thin.IC.nul);
+      public_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (public_key_tank'Unchecked_Access);
+
+      secret_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_SECRETKEYBYTES);
+      secret_key_tank : aliased Thin.IC.char_array := (1 .. secret_key_size => Thin.IC.nul);
+      secret_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_keypair (pk => public_pointer, sk => secret_pointer);
+      box_key_public := convert (public_key_tank);
+      box_key_secret := convert (secret_key_tank);
+   end Generate_Box_Keys;
+
+
+   ----------------------------
+   --  Generate_Box_Keys #2  --
+   ----------------------------
+   procedure Generate_Box_Keys  (box_key_public : out Public_Box_Key;
+                                 box_key_secret : out Secret_Box_Key;
+                                 seed           : Box_Key_Seed)
+   is
+      res             : Thin.IC.int;
+      public_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_PUBLICKEYBYTES);
+      public_key_tank : aliased Thin.IC.char_array := (1 .. public_key_size => Thin.IC.nul);
+      public_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (public_key_tank'Unchecked_Access);
+
+      secret_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_SECRETKEYBYTES);
+      secret_key_tank : aliased Thin.IC.char_array := (1 .. secret_key_size => Thin.IC.nul);
+      secret_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
+      seed_tank       : aliased Thin.IC.char_array := convert (seed);
+      seed_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (seed_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_seed_keypair (pk   => public_pointer,
+                                           sk   => secret_pointer,
+                                           seed => seed_pointer);
+      box_key_public := convert (public_key_tank);
+      box_key_secret := convert (secret_key_tank);
+   end Generate_Box_Keys;
+
+
+   ---------------------------
+   --  Generate_Shared_Key  --
+   ---------------------------
+   function Generate_Shared_Key (recipient_public_key : Public_Box_Key;
+                                 sender_secret_key    : Secret_Box_Key) return Box_Shared_Key
+   is
+      res             : Thin.IC.int;
+      public_key_tank : aliased Thin.IC.char_array := convert (recipient_public_key);
+      public_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (public_key_tank'Unchecked_Access);
+
+      secret_key_tank : aliased Thin.IC.char_array := convert (sender_secret_key);
+      secret_pointer  : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (secret_key_tank'Unchecked_Access);
+      shared_key_size : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_BEFORENMBYTES);
+      shared_key_tank : aliased Thin.IC.char_array := (1 .. shared_key_size => Thin.IC.nul);
+      shared_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (shared_key_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_beforenm (k  => shared_pointer,
+                                       pk => public_pointer,
+                                       sk => secret_pointer);
+      return convert (shared_key_tank);
+   end Generate_Shared_Key;
+
+
+   --------------------------
+   --  Encrypt_Message #1  --
+   --------------------------
+   function Encrypt_Message (plain_text_message : String;
+                             shared_key         : Box_Shared_Key;
+                             unique_nonce       : Box_Nonce) return Encrypted_Data
+   is
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (plain_text_message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (shared_key);
+      skey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_MACBYTES) +
+                                          Thin.IC.size_t (message_size);
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_easy_afternm (c    => product_pointer,
+                                           m    => message_pointer,
+                                           mlen => message_size,
+                                           n    => nonce_pointer,
+                                           k    => skey_pointer);
+      return convert (product_tank);
+   end Encrypt_Message;
+
+
+   --------------------------
+   --  Encrypt_Message #2  --
+   --------------------------
+   function Encrypt_Message (plain_text_message   : String;
+                             recipient_public_key : Public_Box_Key;
+                             sender_secret_key    : Secret_Box_Key;
+                             unique_nonce         : Box_Nonce) return Encrypted_Data
+   is
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (plain_text_message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      pkey_tank       : aliased Thin.IC.char_array := convert (recipient_public_key);
+      pkey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (pkey_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (sender_secret_key);
+      skey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (Thin.crypto_box_MACBYTES) +
+                                          Thin.IC.size_t (message_size);
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+
+   begin
+      res := Thin.crypto_box_easy (c    => product_pointer,
+                                   m    => message_pointer,
+                                   mlen => message_size,
+                                   n    => nonce_pointer,
+                                   pk   => pkey_pointer,
+                                   sk   => skey_pointer);
+      return convert (product_tank);
+   end Encrypt_Message;
+
+
+   --------------------------
+   --  Decrypt_Message #1  --
+   --------------------------
+   function Decrypt_Message (ciphertext   : Encrypted_Data;
+                             shared_key   : Box_Shared_Key;
+                             unique_nonce : Box_Nonce) return String
+   is
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      cipher_tank     : aliased Thin.IC.char_array := convert (ciphertext);
+      cipher_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
+      cipher_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (cipher_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (shared_key);
+      skey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (cipher_size) -
+                                          Thin.IC.size_t (Thin.crypto_box_MACBYTES);
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_open_easy_afternm (m    => product_pointer,
+                                                c    => cipher_pointer,
+                                                clen => cipher_size,
+                                                n    => nonce_pointer,
+                                                k    => skey_pointer);
+      return convert (product_tank);
+   end Decrypt_Message;
+
+
+   --------------------------
+   --  Decrypt_Message #2  --
+   --------------------------
+   function Decrypt_Message (ciphertext           : Encrypted_Data;
+                             sender_public_key    : Public_Box_Key;
+                             recipient_secret_key : Secret_Box_Key;
+                             unique_nonce         : Box_Nonce) return String
+   is
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      cipher_tank     : aliased Thin.IC.char_array := convert (ciphertext);
+      cipher_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
+      cipher_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (cipher_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      pkey_tank       : aliased Thin.IC.char_array := convert (sender_public_key);
+      pkey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (pkey_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (recipient_secret_key);
+      skey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t := Thin.IC.size_t (cipher_size) -
+                                          Thin.IC.size_t (Thin.crypto_box_MACBYTES);
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_open_easy (m    => product_pointer,
+                                        c    => cipher_pointer,
+                                        clen => cipher_size,
+                                        n    => nonce_pointer,
+                                        pk   => pkey_pointer,
+                                        sk   => skey_pointer);
+      return convert (product_tank);
+   end Decrypt_Message;
 
 end Sodium.Functions;

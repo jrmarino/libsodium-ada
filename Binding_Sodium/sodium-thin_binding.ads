@@ -249,37 +249,61 @@ package Sodium.Thin_Binding is
    --  Public Key Encryption  --
    -----------------------------
 
-   function crypto_box_keypair (pk : out ICS.chars_ptr; sk : out ICS.chars_ptr) return IC.int;
+   function crypto_box_keypair (pk : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_keypair);
 
-   function crypto_box_seed_keypair (pk   : out ICS.chars_ptr;
-                                     sk   : out ICS.chars_ptr;
+   function crypto_box_seed_keypair (pk   : ICS.chars_ptr;
+                                     sk   : ICS.chars_ptr;
                                      seed : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_seed_keypair);
 
-   function crypto_scalarmult_base (q : out ICS.chars_ptr; n : ICS.chars_ptr) return IC.int;
+   function crypto_scalarmult_base (q : ICS.chars_ptr; n : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_scalarmult_base);
 
-   function crypto_box_easy (c    : out ICS.chars_ptr; m  : ICS.chars_ptr;
-                             mlen : NaCl_uint64;       n  : ICS.chars_ptr;
-                             pk   : ICS.chars_ptr;     sk : ICS.chars_ptr) return IC.int;
+   function crypto_box_easy (c    : ICS.chars_ptr; m  : ICS.chars_ptr;
+                             mlen : NaCl_uint64;   n  : ICS.chars_ptr;
+                             pk   : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_easy);
 
-   function crypto_box_open_easy (m    : out ICS.chars_ptr; c  : ICS.chars_ptr;
-                                  clen : NaCl_uint64;       n  : ICS.chars_ptr;
-                                  pk   : ICS.chars_ptr;     sk : ICS.chars_ptr) return IC.int;
+   function crypto_box_open_easy (m    : ICS.chars_ptr; c  : ICS.chars_ptr;
+                                  clen : NaCl_uint64;   n  : ICS.chars_ptr;
+                                  pk   : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_open_easy);
 
-   function crypto_box_detached (c    : out ICS.chars_ptr;
-                                 mac  : out ICS.chars_ptr; m  : ICS.chars_ptr;
-                                 mlen : NaCl_uint64;       n  : ICS.chars_ptr;
-                                 pk   : ICS.chars_ptr;     sk : ICS.chars_ptr) return IC.int;
+   function crypto_box_detached (c    : ICS.chars_ptr;
+                                 mac  : ICS.chars_ptr; m  : ICS.chars_ptr;
+                                 mlen : NaCl_uint64;   n  : ICS.chars_ptr;
+                                 pk   : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_detached);
 
-   function crypto_box_open_detached (m    : out ICS.chars_ptr;
-                                      c    : ICS.chars_ptr;     mac : ICS.chars_ptr;
-                                      clen : NaCl_uint64;       n   : ICS.chars_ptr;
-                                      pk   : ICS.chars_ptr;     sk  : ICS.chars_ptr) return IC.int;
+   function crypto_box_open_detached (m    : ICS.chars_ptr;
+                                      c    : ICS.chars_ptr; mac : ICS.chars_ptr;
+                                      clen : NaCl_uint64;   n   : ICS.chars_ptr;
+                                      pk   : ICS.chars_ptr; sk  : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_open_detached);
+
+   function crypto_box_beforenm (k, pk, sk : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_beforenm);
+
+   function crypto_box_easy_afternm (c    : ICS.chars_ptr; m : ICS.chars_ptr;
+                                     mlen : NaCl_uint64;   n : ICS.chars_ptr;
+                                     k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_easy_afternm);
+
+   function crypto_box_open_easy_afternm (m    : ICS.chars_ptr; c : ICS.chars_ptr;
+                                          clen : NaCl_uint64;   n : ICS.chars_ptr;
+                                          k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_open_easy_afternm);
+
+   function crypto_box_detached_afternm (c : ICS.chars_ptr; mac  : ICS.chars_ptr;
+                                         m : ICS.chars_ptr; mlen : NaCl_uint64;
+                                         n : ICS.chars_ptr; k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_detached_afternm);
+
+   function crypto_box_open_detached_afternm (m   : ICS.chars_ptr; c    : ICS.chars_ptr;
+                                              mac : ICS.chars_ptr; clen : NaCl_uint64;
+                                              n   : ICS.chars_ptr; k    : ICS.chars_ptr)
+                                              return IC.int;
+   pragma Import (C, crypto_box_open_detached_afternm);
 
 end Sodium.Thin_Binding;

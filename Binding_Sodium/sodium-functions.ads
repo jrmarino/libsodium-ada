@@ -32,6 +32,14 @@ package Sodium.Functions is
    subtype Sign_Key_Seed   is String (1 .. Positive (Thin.crypto_sign_SEEDBYTES));
    subtype Signature       is String (1 .. Positive (Thin.crypto_sign_BYTES));
 
+   subtype Public_Box_Key is String (1 .. Positive (Thin.crypto_box_PUBLICKEYBYTES));
+   subtype Secret_Box_Key is String (1 .. Positive (Thin.crypto_box_SECRETKEYBYTES));
+   subtype Box_Key_Seed   is String (1 .. Positive (Thin.crypto_box_SEEDBYTES));
+   subtype Box_Nonce      is String (1 .. Positive (Thin.crypto_box_NONCEBYTES));
+   subtype Box_Shared_Key is String (1 .. Positive (Thin.crypto_box_BEFORENMBYTES));
+
+   subtype Encrypted_Data is String;
+
    type Natural32 is mod 2 ** 32;
 
    type Data_Criticality is (online_interactive, moderate, highly_sensitive);
@@ -73,6 +81,7 @@ package Sodium.Functions is
    function Random_Limited_Word (upper_bound : Natural32) return Natural32;
 
    function Random_Salt              return Password_Salt;
+   function Random_Nonce             return Box_Nonce;
    function Random_Short_Key         return Short_Key;
    function Random_Standard_Hash_Key return Standard_Key;
    function Random_Sign_Key_seed     return Sign_Key_Seed;
@@ -118,6 +127,38 @@ package Sodium.Functions is
    function Signature_Matches   (plain_text_message : String;
                                  sender_signature   : Signature;
                                  sender_sign_key    : Public_Sign_Key) return Boolean;
+
+   -----------------------------
+   --  Public Key Encryption  --
+   -----------------------------
+
+   procedure Generate_Box_Keys  (box_key_public : out Public_Box_Key;
+                                 box_key_secret : out Secret_Box_Key);
+
+   procedure Generate_Box_Keys  (box_key_public : out Public_Box_Key;
+                                 box_key_secret : out Secret_Box_Key;
+                                 seed           : Box_Key_Seed);
+
+   function Generate_Shared_Key (recipient_public_key : Public_Box_Key;
+                                 sender_secret_key    : Secret_Box_Key) return Box_Shared_Key;
+
+   function Encrypt_Message     (plain_text_message   : String;
+                                 recipient_public_key : Public_Box_Key;
+                                 sender_secret_key    : Secret_Box_Key;
+                                 unique_nonce         : Box_Nonce) return Encrypted_Data;
+
+   function Encrypt_Message     (plain_text_message   : String;
+                                 shared_key           : Box_Shared_Key;
+                                 unique_nonce         : Box_Nonce) return Encrypted_Data;
+
+   function Decrypt_Message     (ciphertext           : Encrypted_Data;
+                                 sender_public_key    : Public_Box_Key;
+                                 recipient_secret_key : Secret_Box_Key;
+                                 unique_nonce         : Box_Nonce) return String;
+
+   function Decrypt_Message     (ciphertext           : Encrypted_Data;
+                                 shared_key           : Box_Shared_Key;
+                                 unique_nonce         : Box_Nonce) return String;
 
    ------------------
    --  Exceptions  --
