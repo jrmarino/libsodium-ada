@@ -334,6 +334,19 @@ package body Sodium.Functions is
    end Random_Sign_Key_seed;
 
 
+   ---------------------------
+   --  Random_Box_Key_seed  --
+   ---------------------------
+   function Random_Box_Key_seed return Box_Key_Seed
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Box_Key_Seed'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Box_Key_seed;
+
+
    --------------------
    --  Random_Nonce  --
    --------------------

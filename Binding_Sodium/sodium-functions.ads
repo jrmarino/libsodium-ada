@@ -85,6 +85,7 @@ package Sodium.Functions is
    function Random_Short_Key         return Short_Key;
    function Random_Standard_Hash_Key return Standard_Key;
    function Random_Sign_Key_seed     return Sign_Key_Seed;
+   function Random_Box_Key_seed      return Box_Key_Seed;
    function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
    --------------------------
