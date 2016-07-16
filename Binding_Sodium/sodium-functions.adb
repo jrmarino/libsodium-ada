@@ -1143,6 +1143,7 @@ package body Sodium.Functions is
                                secret_key   : Symmetric_Key;
                                unique_nonce : Symmetric_Nonce) return String
    is
+      use type Thin.IC.int;
       res             : Thin.IC.int;
       cipher_tank     : aliased Thin.IC.char_array := convert (ciphertext);
       cipher_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
@@ -1162,7 +1163,11 @@ package body Sodium.Functions is
                                               clen => cipher_size,
                                               n    => nonce_pointer,
                                               k    => skey_pointer);
-      return convert (product_tank);
+      if res = 0 then
+         return convert (product_tank);
+      end if;
+      raise Sodium_Symmetric_Failed
+        with "Message forged or incorrect secret key";
    end Symmetric_Decrypt;
 
 end Sodium.Functions;

@@ -208,6 +208,7 @@ package Sodium.Functions is
    Sodium_Already_Initialized : exception;
    Sodium_Invalid_Input       : exception;
    Sodium_Wrong_Recipient     : exception;
+   Sodium_Symmetric_Failed    : exception;
 
 private
 
