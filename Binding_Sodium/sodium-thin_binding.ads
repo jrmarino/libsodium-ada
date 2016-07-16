@@ -131,6 +131,21 @@ package Sodium.Thin_Binding is
    crypto_sign_PUBLICKEYBYTES : NaCl_uint8 renames crypto_sign_ed25519_PUBLICKEYBYTES;
    crypto_sign_SECRETKEYBYTES : NaCl_uint8 renames crypto_sign_ed25519_SECRETKEYBYTES;
 
+   crypto_secretbox_xsalsa20poly1305_KEYBYTES     : constant NaCl_uint8 := 32;
+   crypto_secretbox_xsalsa20poly1305_NONCEBYTES   : constant NaCl_uint8 := 24;
+   crypto_secretbox_xsalsa20poly1305_MACBYTES     : constant NaCl_uint8 := 16;
+   crypto_secretbox_xsalsa20poly1305_BOXZEROBYTES : constant NaCl_uint8 := 16;
+   crypto_secretbox_xsalsa20poly1305_ZEROBYTES    : constant NaCl_uint8 :=
+     crypto_secretbox_xsalsa20poly1305_BOXZEROBYTES +
+       crypto_secretbox_xsalsa20poly1305_MACBYTES;
+
+   crypto_secretbox_KEYBYTES   : NaCl_uint8 renames crypto_secretbox_xsalsa20poly1305_KEYBYTES;
+   crypto_secretbox_MACBYTES   : NaCl_uint8 renames crypto_secretbox_xsalsa20poly1305_MACBYTES;
+   crypto_secretbox_NONCEBYTES : NaCl_uint8 renames crypto_secretbox_xsalsa20poly1305_NONCEBYTES;
+   crypto_secretbox_ZEROBYTES  : NaCl_uint8 renames crypto_secretbox_xsalsa20poly1305_ZEROBYTES;
+   crypto_secretbox_BOXZEROBYTES : NaCl_uint8
+                                   renames crypto_secretbox_xsalsa20poly1305_BOXZEROBYTES;
+
    ------------------------
    --  New C Data Types  --
    ------------------------
@@ -318,5 +333,28 @@ package Sodium.Thin_Binding is
    function crypto_box_seal_open (m  : ICS.chars_ptr; c  : ICS.chars_ptr; clen : NaCl_uint64;
                                   pk : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_box_seal_open);
+
+   ----------------------------
+   --  Symmetric Encryption  --
+   ----------------------------
+
+   function crypto_secretbox_easy (c : ICS.chars_ptr; m : ICS.chars_ptr; mlen : NaCl_uint64;
+                                   n : ICS.chars_ptr; k : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_secretbox_easy);
+
+   function crypto_secretbox_open_easy (m : ICS.chars_ptr; c : ICS.chars_ptr; clen : NaCl_uint64;
+                                        n : ICS.chars_ptr; k : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_secretbox_open_easy);
+
+   function crypto_secretbox_detached (c : ICS.chars_ptr; mac  : ICS.chars_ptr;
+                                       m : ICS.chars_ptr; mlen : NaCl_uint64;
+                                       n : ICS.chars_ptr; k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_secretbox_detached);
+
+   function crypto_secretbox_open_detached (m   : ICS.chars_ptr;    c : ICS.chars_ptr;
+                                            mac : ICS.chars_ptr; clen : NaCl_uint64;
+                                            n   : ICS.chars_ptr;    k : ICS.chars_ptr)
+                                            return IC.int;
+   pragma Import (C, crypto_secretbox_open_detached);
 
 end Sodium.Thin_Binding;

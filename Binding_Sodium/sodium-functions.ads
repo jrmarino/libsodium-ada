@@ -33,14 +33,17 @@ package Sodium.Functions is
    subtype Sign_Key_Seed   is String (1 .. Positive (Thin.crypto_sign_SEEDBYTES));
    subtype Signature       is String (1 .. Positive (Thin.crypto_sign_BYTES));
 
-   subtype Public_Box_Key is String (1 .. Positive (Thin.crypto_box_PUBLICKEYBYTES));
-   subtype Secret_Box_Key is String (1 .. Positive (Thin.crypto_box_SECRETKEYBYTES));
-   subtype Box_Key_Seed   is String (1 .. Positive (Thin.crypto_box_SEEDBYTES));
-   subtype Box_Nonce      is String (1 .. Positive (Thin.crypto_box_NONCEBYTES));
-   subtype Box_Shared_Key is String (1 .. Positive (Thin.crypto_box_BEFORENMBYTES));
+   subtype Public_Box_Key  is String (1 .. Positive (Thin.crypto_box_PUBLICKEYBYTES));
+   subtype Secret_Box_Key  is String (1 .. Positive (Thin.crypto_box_SECRETKEYBYTES));
+   subtype Box_Key_Seed    is String (1 .. Positive (Thin.crypto_box_SEEDBYTES));
+   subtype Box_Nonce       is String (1 .. Positive (Thin.crypto_box_NONCEBYTES));
+   subtype Box_Shared_Key  is String (1 .. Positive (Thin.crypto_box_BEFORENMBYTES));
 
-   subtype Encrypted_Data is String;
-   subtype Sealed_Data    is String;
+   subtype Symmetric_Key   is String (1 .. Positive (Thin.crypto_secretbox_KEYBYTES));
+   subtype Symmetric_Nonce is String (1 .. Positive (Thin.crypto_secretbox_NONCEBYTES));
+
+   subtype Encrypted_Data  is String;
+   subtype Sealed_Data     is String;
 
    type Natural32 is mod 2 ** 32;
 
@@ -88,6 +91,8 @@ package Sodium.Functions is
    function Random_Standard_Hash_Key return Standard_Key;
    function Random_Sign_Key_seed     return Sign_Key_Seed;
    function Random_Box_Key_seed      return Box_Key_Seed;
+   function Random_Symmetric_Key     return Symmetric_Key;
+   function Random_Symmetric_Nonce   return Symmetric_Nonce;
    function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
    --------------------------
@@ -179,6 +184,21 @@ package Sodium.Functions is
 
    function Sealed_Cipher_Length     (plain_text : String) return Positive;
    function Sealed_Clear_Text_Length (ciphertext : Sealed_Data) return Positive;
+
+   ----------------------------
+   --  Symmetric Encryption  --
+   ----------------------------
+
+   function Symmetric_Encrypt (clear_text   : String;
+                               secret_key   : Symmetric_Key;
+                               unique_nonce : Symmetric_Nonce) return Encrypted_Data;
+
+   function Symmetric_Decrypt (ciphertext   : Encrypted_Data;
+                               secret_key   : Symmetric_Key;
+                               unique_nonce : Symmetric_Nonce) return String;
+
+   function Symmetric_Cipher_Length     (plain_text : String) return Positive;
+   function Symmetric_Clear_Text_Length (ciphertext : Encrypted_Data) return Positive;
 
    ------------------
    --  Exceptions  --

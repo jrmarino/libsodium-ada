@@ -361,6 +361,32 @@ package body Sodium.Functions is
    end Random_Nonce;
 
 
+   ----------------------------
+   --  Random_Symmetric_Key  --
+   ----------------------------
+   function Random_Symmetric_Key return Symmetric_Key
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Symmetric_Key'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Symmetric_Key;
+
+
+   ------------------------------
+   --  Random_Symmetric_Nonce  --
+   ------------------------------
+   function Random_Symmetric_Nonce return Symmetric_Nonce
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Symmetric_Nonce'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Symmetric_Nonce;
+
+
    ---------------------------
    --  Derive_Password_Key  --
    ---------------------------
@@ -1060,5 +1086,83 @@ package body Sodium.Functions is
       raise Sodium_Wrong_Recipient;
    end Unseal_Message;
 
+
+   -------------------------------
+   --  Symmetric_Cipher_Length  --
+   -------------------------------
+   function Symmetric_Cipher_Length (plain_text : String) return Positive is
+   begin
+      return plain_text'Length + Positive (Thin.crypto_secretbox_MACBYTES);
+   end Symmetric_Cipher_Length;
+
+
+   -----------------------------------
+   --  Symmetric_Clear_Text_Length  --
+   -----------------------------------
+   function Symmetric_Clear_Text_Length (ciphertext : Encrypted_Data) return Positive is
+   begin
+      return ciphertext'Length - Positive (Thin.crypto_secretbox_MACBYTES);
+   end Symmetric_Clear_Text_Length;
+
+
+   -------------------------
+   --  Symmetric_Encrypt  --
+   -------------------------
+   function Symmetric_Encrypt (clear_text   : String;
+                               secret_key   : Symmetric_Key;
+                               unique_nonce : Symmetric_Nonce) return Encrypted_Data
+   is
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (clear_text);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (secret_key);
+      skey_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t :=
+                        Thin.IC.size_t (Symmetric_Cipher_Length (clear_text));
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_secretbox_easy (c    => product_pointer,
+                                         m    => message_pointer,
+                                         mlen => message_size,
+                                         n    => nonce_pointer,
+                                         k    => skey_pointer);
+      return convert (product_tank);
+   end Symmetric_Encrypt;
+
+
+   -------------------------
+   --  Symmetric_Decrypt  --
+   -------------------------
+   function Symmetric_Decrypt (ciphertext   : Encrypted_Data;
+                               secret_key   : Symmetric_Key;
+                               unique_nonce : Symmetric_Nonce) return String
+   is
+      res             : Thin.IC.int;
+      cipher_tank     : aliased Thin.IC.char_array := convert (ciphertext);
+      cipher_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
+      cipher_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (cipher_tank'Unchecked_Access);
+      nonce_tank      : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer   : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (secret_key);
+      skey_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t :=
+                        Thin.IC.size_t (Symmetric_Clear_Text_Length (ciphertext));
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_secretbox_open_easy (m    => product_pointer,
+                                              c    => cipher_pointer,
+                                              clen => cipher_size,
+                                              n    => nonce_pointer,
+                                              k    => skey_pointer);
+      return convert (product_tank);
+   end Symmetric_Decrypt;
 
 end Sodium.Functions;
