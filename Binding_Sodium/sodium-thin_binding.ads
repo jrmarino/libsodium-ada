@@ -146,6 +146,12 @@ package Sodium.Thin_Binding is
    crypto_secretbox_BOXZEROBYTES : NaCl_uint8
                                    renames crypto_secretbox_xsalsa20poly1305_BOXZEROBYTES;
 
+   crypto_auth_hmacsha512256_BYTES    : constant NaCl_uint8 := 32;
+   crypto_auth_hmacsha512256_KEYBYTES : constant NaCl_uint8 := 32;
+
+   crypto_auth_BYTES    : NaCl_uint8 renames crypto_auth_hmacsha512256_BYTES;
+   crypto_auth_KEYBYTES : NaCl_uint8 renames crypto_auth_hmacsha512256_KEYBYTES;
+
    ------------------------
    --  New C Data Types  --
    ------------------------
@@ -356,5 +362,21 @@ package Sodium.Thin_Binding is
                                             n   : ICS.chars_ptr;    k : ICS.chars_ptr)
                                             return IC.int;
    pragma Import (C, crypto_secretbox_open_detached);
+
+   ------------------------------
+   --  Message Authentication  --
+   ------------------------------
+
+   function crypto_auth (tag     : ICS.chars_ptr;
+                         text_in : ICS.chars_ptr;
+                         inlen   : NaCl_uint64;
+                         k       : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_auth);
+
+   function crypto_auth_verify (tag     : ICS.chars_ptr;
+                                text_in : ICS.chars_ptr;
+                                inlen   : NaCl_uint64;
+                                k       : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_auth_verify);
 
 end Sodium.Thin_Binding;

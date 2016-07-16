@@ -42,6 +42,9 @@ package Sodium.Functions is
    subtype Symmetric_Key   is String (1 .. Positive (Thin.crypto_secretbox_KEYBYTES));
    subtype Symmetric_Nonce is String (1 .. Positive (Thin.crypto_secretbox_NONCEBYTES));
 
+   subtype Auth_Key        is String (1 .. Positive (Thin.crypto_auth_KEYBYTES));
+   subtype Auth_Tag        is String (1 .. Positive (Thin.crypto_auth_BYTES));
+
    subtype Encrypted_Data  is String;
    subtype Sealed_Data     is String;
 
@@ -93,6 +96,7 @@ package Sodium.Functions is
    function Random_Box_Key_seed      return Box_Key_Seed;
    function Random_Symmetric_Key     return Symmetric_Key;
    function Random_Symmetric_Nonce   return Symmetric_Nonce;
+   function Random_Auth_Key          return Auth_Key;
    function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
 
    --------------------------
@@ -199,6 +203,16 @@ package Sodium.Functions is
 
    function Symmetric_Cipher_Length     (plain_text : String) return Positive;
    function Symmetric_Clear_Text_Length (ciphertext : Encrypted_Data) return Positive;
+
+   ------------------------------
+   --  Message Authentication  --
+   ------------------------------
+
+   function Generate_Authentication_Tag (message : String; authentication_key : Auth_Key)
+                                         return Auth_Tag;
+
+   function Authentic_Message (message : String; authentication_tag : Auth_Tag;
+                               authentication_key : Auth_Key) return Boolean;
 
    ------------------
    --  Exceptions  --

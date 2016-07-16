@@ -387,6 +387,19 @@ package body Sodium.Functions is
    end Random_Symmetric_Nonce;
 
 
+   -----------------------
+   --  Random_Auth_Key  --
+   -----------------------
+   function Random_Auth_Key return Auth_Key
+   is
+      bufferlen : constant Thin.IC.size_t := Thin.IC.size_t (Auth_Key'Last);
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_Auth_Key;
+
+
    ---------------------------
    --  Derive_Password_Key  --
    ---------------------------
@@ -1169,5 +1182,55 @@ package body Sodium.Functions is
       raise Sodium_Symmetric_Failed
         with "Message forged or incorrect secret key";
    end Symmetric_Decrypt;
+
+
+   -----------------------------------
+   --  Generate_Authentication_Tag  --
+   -----------------------------------
+   function Generate_Authentication_Tag (message : String; authentication_key : Auth_Key)
+                                         return Auth_Tag
+   is
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (authentication_key);
+      skey_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_tank    : aliased Thin.IC.char_array := (1 .. Auth_Tag'Length => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_auth (tag     => product_pointer,
+                               text_in => message_pointer,
+                               inlen   => message_size,
+                               k       => skey_pointer);
+      return convert (product_tank);
+   end Generate_Authentication_Tag;
+
+
+   -------------------------
+   --  Authentic_Message  --
+   -------------------------
+   function Authentic_Message (message : String; authentication_tag : Auth_Tag;
+                               authentication_key : Auth_Key) return Boolean
+   is
+      use type Thin.IC.int;
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (authentication_key);
+      skey_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      tag_tank        : aliased Thin.IC.char_array := convert (authentication_tag);
+      tag_pointer     : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (tag_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_auth_verify (tag     => tag_pointer,
+                                      text_in => message_pointer,
+                                      inlen   => message_size,
+                                      k       => skey_pointer);
+      return (res = 0);
+   end Authentic_Message;
 
 end Sodium.Functions;
