@@ -975,4 +975,89 @@ package body Sodium.Functions is
       return ciphertext'Length - Positive (Thin.crypto_box_MACBYTES);
    end Clear_Text_Length;
 
+
+   ----------------------------
+   --  Sealed_Cipher_Length  --
+   ----------------------------
+   function Sealed_Cipher_Length (plain_text : String) return Positive is
+   begin
+      return plain_text'Length + Positive (Thin.crypto_box_SEALBYTES);
+   end Sealed_Cipher_Length;
+
+
+   --------------------------------
+   --  Sealed_Clear_Text_Length  --
+   --------------------------------
+   function Sealed_Clear_Text_Length (ciphertext : Sealed_Data) return Positive is
+   begin
+      return ciphertext'Length - Positive (Thin.crypto_box_SEALBYTES);
+   end Sealed_Clear_Text_Length;
+
+
+   --------------------
+   --  Seal_Message  --
+   --------------------
+   function Seal_Message (plain_text_message   : String;
+                          recipient_public_key : Public_Box_Key) return Sealed_Data
+   is
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      message_tank    : aliased Thin.IC.char_array := convert (plain_text_message);
+      message_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      pkey_tank       : aliased Thin.IC.char_array := convert (recipient_public_key);
+      pkey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (pkey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t :=
+                        Thin.IC.size_t (Sealed_Cipher_Length (plain_text_message));
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_seal (c    => product_pointer,
+                                   m    => message_pointer,
+                                   mlen => message_size,
+                                   pk   => pkey_pointer);
+      return convert (product_tank);
+   end Seal_Message;
+
+
+   ----------------------
+   --  Unseal_Message  --
+   ----------------------
+   function Unseal_Message (ciphertext           : Sealed_Data;
+                            recipient_public_key : Public_Box_Key;
+                            recipient_secret_key : Secret_Box_Key) return String
+   is
+      use type Thin.IC.int;
+      use type Thin.IC.size_t;
+      res             : Thin.IC.int;
+      cipher_tank     : aliased Thin.IC.char_array := convert (ciphertext);
+      cipher_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
+      cipher_pointer  : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (cipher_tank'Unchecked_Access);
+      pkey_tank       : aliased Thin.IC.char_array := convert (recipient_public_key);
+      pkey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (pkey_tank'Unchecked_Access);
+      skey_tank       : aliased Thin.IC.char_array := convert (recipient_secret_key);
+      skey_pointer    : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      product_size    : Thin.IC.size_t :=
+                        Thin.IC.size_t (Sealed_Clear_Text_Length (ciphertext));
+      product_tank    : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      res := Thin.crypto_box_seal_open (m    => product_pointer,
+                                        c    => cipher_pointer,
+                                        clen => cipher_size,
+                                        pk   => pkey_pointer,
+                                        sk   => skey_pointer);
+      if res = 0 then
+         return convert (product_tank);
+      end if;
+      raise Sodium_Wrong_Recipient;
+   end Unseal_Message;
+
+
 end Sodium.Functions;

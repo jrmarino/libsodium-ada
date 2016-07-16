@@ -306,4 +306,16 @@ package Sodium.Thin_Binding is
                                               return IC.int;
    pragma Import (C, crypto_box_open_detached_afternm);
 
+   ----------------------------------
+   --  Anonymous Private Messages  --
+   ----------------------------------
+
+   function crypto_box_seal (c  : ICS.chars_ptr; m : ICS.chars_ptr; mlen : NaCl_uint64;
+                             pk : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_seal);
+
+   function crypto_box_seal_open (m  : ICS.chars_ptr; c  : ICS.chars_ptr; clen : NaCl_uint64;
+                                  pk : ICS.chars_ptr; sk : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_box_seal_open);
+
 end Sodium.Thin_Binding;

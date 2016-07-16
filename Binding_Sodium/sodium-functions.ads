@@ -39,6 +39,7 @@ package Sodium.Functions is
    subtype Box_Shared_Key is String (1 .. Positive (Thin.crypto_box_BEFORENMBYTES));
 
    subtype Encrypted_Data is String;
+   subtype Sealed_Data    is String;
 
    type Natural32 is mod 2 ** 32;
 
@@ -164,6 +165,20 @@ package Sodium.Functions is
    function Cipher_Length       (plain_text_message   : String) return Positive;
    function Clear_Text_Length   (ciphertext           : Encrypted_Data) return Positive;
 
+   ----------------------------------
+   --  Anonymous Private Messages  --
+   ----------------------------------
+
+   function Seal_Message        (plain_text_message   : String;
+                                 recipient_public_key : Public_Box_Key) return Sealed_Data;
+
+   function Unseal_Message      (ciphertext           : Sealed_Data;
+                                 recipient_public_key : Public_Box_Key;
+                                 recipient_secret_key : Secret_Box_Key) return String;
+
+   function Sealed_Cipher_Length     (plain_text : String) return Positive;
+   function Sealed_Clear_Text_Length (ciphertext : Sealed_Data) return Positive;
+
    ------------------
    --  Exceptions  --
    ------------------
@@ -171,6 +186,7 @@ package Sodium.Functions is
    Sodium_Out_Of_Memory       : exception;
    Sodium_Already_Initialized : exception;
    Sodium_Invalid_Input       : exception;
+   Sodium_Wrong_Recipient     : exception;
 
 private
 
