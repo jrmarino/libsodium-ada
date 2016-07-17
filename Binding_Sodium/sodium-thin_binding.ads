@@ -55,6 +55,9 @@ package Sodium.Thin_Binding is
    type crypto_aead_aes256gcm_state_Access is access all crypto_aead_aes256gcm_state;
    pragma Convention (C, crypto_aead_aes256gcm_state_Access);
 
+   type NaCl_uint64_Access is access all NaCl_uint64;
+   pragma Convention (C, NaCl_uint64_Access);
+
    -----------------
    --  Constants  --
    -----------------
@@ -480,17 +483,17 @@ package Sodium.Thin_Binding is
    pragma Import (C, crypto_aead_chacha20poly1305_encrypt);
 
    function crypto_aead_chacha20poly1305_decrypt
-     (m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+     (m    : ICS.chars_ptr; mlen_p : NaCl_uint64_Access;
       nsec : ICS.chars_ptr;
-      c    : ICS.chars_ptr; clen  : NaCl_uint64;
-      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      c    : ICS.chars_ptr; clen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       npub : ICS.chars_ptr;
       k    : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_aead_chacha20poly1305_decrypt);
 
    function crypto_aead_chacha20poly1305_encrypt_detached
      (c    : ICS.chars_ptr;
-      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      mac  : ICS.chars_ptr; maclen_p : NaCl_uint64_Access;
       m    : ICS.chars_ptr; mlen     : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
       nsec : ICS.chars_ptr;
@@ -522,17 +525,17 @@ package Sodium.Thin_Binding is
    pragma Import (C, crypto_aead_chacha20poly1305_ietf_encrypt);
 
    function crypto_aead_chacha20poly1305_ietf_decrypt
-     (m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+     (m    : ICS.chars_ptr; mlen_p : NaCl_uint64_Access;
       nsec : ICS.chars_ptr;
-      c    : ICS.chars_ptr; clen  : NaCl_uint64;
-      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      c    : ICS.chars_ptr; clen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       npub : ICS.chars_ptr;
       k    : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_aead_chacha20poly1305_ietf_decrypt);
 
    function crypto_aead_chacha20poly1305_ietf_encrypt_detached
      (c    : ICS.chars_ptr;
-      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      mac  : ICS.chars_ptr; maclen_p : NaCl_uint64_Access;
       m    : ICS.chars_ptr; mlen     : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
       nsec : ICS.chars_ptr;
@@ -564,7 +567,7 @@ package Sodium.Thin_Binding is
    pragma Import (C, crypto_aead_aes256gcm_encrypt);
 
    function crypto_aead_aes256gcm_decrypt
-     (m    : ICS.chars_ptr; mlen_p : System.Address;
+     (m    : ICS.chars_ptr; mlen_p : NaCl_uint64_Access;
       nsec : ICS.chars_ptr;
       c    : ICS.chars_ptr; clen   : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
@@ -574,7 +577,7 @@ package Sodium.Thin_Binding is
 
    function crypto_aead_aes256gcm_encrypt_detached
      (c    : ICS.chars_ptr;
-      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      mac  : ICS.chars_ptr; maclen_p : NaCl_uint64_Access;
       m    : ICS.chars_ptr; mlen     : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
       nsec : ICS.chars_ptr;
@@ -602,7 +605,7 @@ package Sodium.Thin_Binding is
    pragma Import (C, crypto_aead_aes256gcm_beforenm);
 
    function crypto_aead_aes256gcm_encrypt_afternm
-     (c    : ICS.chars_ptr; clen_p : System.Address;
+     (c    : ICS.chars_ptr; clen_p : NaCl_uint64_Access;
       m    : ICS.chars_ptr; mlen   : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       nsec : ICS.chars_ptr;
@@ -611,7 +614,7 @@ package Sodium.Thin_Binding is
    pragma Import (C, crypto_aead_aes256gcm_encrypt_afternm);
 
    function crypto_aead_aes256gcm_decrypt_afternm
-     (m    : ICS.chars_ptr; mlen_p : System.Address;
+     (m    : ICS.chars_ptr; mlen_p : NaCl_uint64_Access;
       nsec : ICS.chars_ptr;
       c    : ICS.chars_ptr; clen   : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
@@ -621,7 +624,7 @@ package Sodium.Thin_Binding is
 
    function crypto_aead_aes256gcm_encrypt_detached_afternm
      (c    : ICS.chars_ptr;
-      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      mac  : ICS.chars_ptr; maclen_p : NaCl_uint64_Access;
       m    : ICS.chars_ptr; mlen     : NaCl_uint64;
       ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
       nsec : ICS.chars_ptr;

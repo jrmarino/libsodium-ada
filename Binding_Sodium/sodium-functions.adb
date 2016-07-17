@@ -400,6 +400,58 @@ package body Sodium.Functions is
    end Random_Auth_Key;
 
 
+   -------------------------
+   --  Random_AEAD_Nonce  --
+   -------------------------
+   function Random_AEAD_Nonce (construction : AEAD_Construction := ChaCha20_Poly1305)
+                               return AEAD_Nonce
+   is
+      function nonce_size return Thin.IC.size_t;
+      function nonce_size return Thin.IC.size_t is
+      begin
+         case construction is
+            when ChaCha20_Poly1305 =>
+               return Thin.IC.size_t (Thin.crypto_aead_chacha20poly1305_NPUBBYTES);
+            when ChaCha20_Poly1305_IETF =>
+               return Thin.IC.size_t (Thin.crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+            when AES256_GCM =>
+               return Thin.IC.size_t (Thin.crypto_aead_aes256gcm_NPUBBYTES);
+         end case;
+      end nonce_size;
+      bufferlen : constant Thin.IC.size_t := nonce_size;
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_AEAD_Nonce;
+
+
+   -----------------------
+   --  Random_AEAD_Key  --
+   -----------------------
+   function Random_AEAD_Key (construction : AEAD_Construction := ChaCha20_Poly1305)
+                               return AEAD_Key
+   is
+      function key_size return Thin.IC.size_t;
+      function key_size return Thin.IC.size_t is
+      begin
+         case construction is
+            when ChaCha20_Poly1305 =>
+               return Thin.IC.size_t (Thin.crypto_aead_chacha20poly1305_KEYBYTES);
+            when ChaCha20_Poly1305_IETF =>
+               return Thin.IC.size_t (Thin.crypto_aead_chacha20poly1305_ietf_KEYBYTES);
+            when AES256_GCM =>
+               return Thin.IC.size_t (Thin.crypto_aead_aes256gcm_KEYBYTES);
+         end case;
+      end key_size;
+      bufferlen : constant Thin.IC.size_t := key_size;
+      buffer : Thin.IC.char_array := (1 .. bufferlen => Thin.IC.nul);
+   begin
+      Thin.randombytes_buf (buf  => buffer (buffer'First)'Address, size => bufferlen);
+      return convert (buffer);
+   end Random_AEAD_Key;
+
+
    ---------------------------
    --  Derive_Password_Key  --
    ---------------------------
@@ -1261,5 +1313,190 @@ package body Sodium.Functions is
          end if;
       end loop;
    end increment_nonce;
+
+
+   --------------------------
+   --  AEAD_Cipher_Length  --
+   --------------------------
+   function AEAD_Cipher_Length (plain_text   : String;
+                                construction : AEAD_Construction := ChaCha20_Poly1305)
+                                return Positive is
+   begin
+      case construction is
+         when ChaCha20_Poly1305 =>
+            return plain_text'Length + Positive (Thin.crypto_aead_chacha20poly1305_ABYTES);
+         when ChaCha20_Poly1305_IETF =>
+            return plain_text'Length + Positive (Thin.crypto_aead_chacha20poly1305_ietf_ABYTES);
+         when AES256_GCM =>
+            return plain_text'Length + Positive (Thin.crypto_aead_aes256gcm_ABYTES);
+      end case;
+   end AEAD_Cipher_Length;
+
+
+   ------------------------------
+   --  AEAD_Clear_Text_Length  --
+   ------------------------------
+   function AEAD_Clear_Text_Length (ciphertext   : Encrypted_Data;
+                                    construction : AEAD_Construction := ChaCha20_Poly1305)
+                                    return Positive is
+   begin
+      case construction is
+         when ChaCha20_Poly1305 =>
+            return ciphertext'Length - Positive (Thin.crypto_aead_chacha20poly1305_ABYTES);
+         when ChaCha20_Poly1305_IETF =>
+            return ciphertext'Length - Positive (Thin.crypto_aead_chacha20poly1305_ietf_ABYTES);
+         when AES256_GCM =>
+            return ciphertext'Length - Positive (Thin.crypto_aead_aes256gcm_ABYTES);
+      end case;
+   end AEAD_Clear_Text_Length;
+
+
+   --------------------
+   --  AEAD_Encrypt  --
+   --------------------
+   function AEAD_Encrypt (data_to_encrypt : String;
+                          additional_data : String;
+                          secret_key      : AEAD_Key;
+                          unique_nonce    : AEAD_Nonce;
+                          construction    : AEAD_Construction := ChaCha20_Poly1305)
+                          return Encrypted_Data
+   is
+      res              : Thin.IC.int;
+      message_tank     : aliased Thin.IC.char_array := convert (data_to_encrypt);
+      message_size     : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      message_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      metadata_tank    : aliased Thin.IC.char_array := convert (additional_data);
+      metadata_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (message_tank'Length);
+      metadata_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (message_tank'Unchecked_Access);
+      nonce_tank       : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank        : aliased Thin.IC.char_array := convert (secret_key);
+      skey_pointer     : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      cipherlen        : Thin.NaCl_uint64 :=
+                         Thin.NaCl_uint64 (AEAD_Cipher_Length (data_to_encrypt, construction));
+      product_size     : Thin.IC.size_t := Thin.IC.size_t (cipherlen);
+      product_tank     : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+   begin
+      case construction is
+         when ChaCha20_Poly1305 =>
+            res := Thin.crypto_aead_chacha20poly1305_encrypt
+              (c     => product_pointer,
+               clen  => cipherlen,
+               m     => message_pointer,
+               mlen  => message_size,
+               ad    => metadata_pointer,
+               adlen => metadata_size,
+               nsec  => Thin.ICS.Null_Ptr,
+               npub  => nonce_pointer,
+               k     => skey_pointer);
+         when ChaCha20_Poly1305_IETF =>
+            res := Thin.crypto_aead_chacha20poly1305_ietf_encrypt
+              (c     => product_pointer,
+               clen  => cipherlen,
+               m     => message_pointer,
+               mlen  => message_size,
+               ad    => metadata_pointer,
+               adlen => metadata_size,
+               nsec  => Thin.ICS.Null_Ptr,
+               npub  => nonce_pointer,
+               k     => skey_pointer);
+         when AES256_GCM =>
+            res := Thin.crypto_aead_aes256gcm_encrypt
+              (c     => product_pointer,
+               clen  => cipherlen,
+               m     => message_pointer,
+               mlen  => metadata_size,
+               ad    => metadata_pointer,
+               adlen => metadata_size,
+               nsec  => Thin.ICS.Null_Ptr,
+               npub  => nonce_pointer,
+               k     => skey_pointer);
+      end case;
+      return convert (product_tank);
+   end AEAD_Encrypt;
+
+
+   --------------------
+   --  AEAD_Decrypt  --
+   --------------------
+   function AEAD_Decrypt (ciphertext      : String;
+                          additional_data : String;
+                          secret_key      : AEAD_Key;
+                          unique_nonce    : AEAD_Nonce;
+                          construction    : AEAD_Construction := ChaCha20_Poly1305) return String
+   is
+      use type Thin.IC.int;
+      res            : Thin.IC.int;
+      cipher_tank    : aliased Thin.IC.char_array := convert (ciphertext);
+      cipher_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (cipher_tank'Length);
+      cipher_pointer : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (cipher_tank'Unchecked_Access);
+
+      metadata_tank    : aliased Thin.IC.char_array := convert (additional_data);
+      metadata_size    : Thin.NaCl_uint64 := Thin.NaCl_uint64 (metadata_tank'Length);
+      metadata_pointer : Thin.ICS.chars_ptr :=
+                        Thin.ICS.To_Chars_Ptr (metadata_tank'Unchecked_Access);
+      nonce_tank       : aliased Thin.IC.char_array := convert (unique_nonce);
+      nonce_pointer    : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (nonce_tank'Unchecked_Access);
+      skey_tank        : aliased Thin.IC.char_array := convert (secret_key);
+      skey_pointer     : Thin.ICS.chars_ptr := Thin.ICS.To_Chars_Ptr (skey_tank'Unchecked_Access);
+      messagelen       : Thin.NaCl_uint64 :=
+                         Thin.NaCl_uint64 (AEAD_Clear_Text_Length (ciphertext, construction));
+      product_size     : Thin.IC.size_t := Thin.IC.size_t (messagelen);
+      product_tank     : aliased Thin.IC.char_array := (1 .. product_size => Thin.IC.nul);
+      product_pointer  : Thin.ICS.chars_ptr :=
+                         Thin.ICS.To_Chars_Ptr (product_tank'Unchecked_Access);
+      product_realsize : aliased Thin.NaCl_uint64;
+   begin
+      case construction is
+         when ChaCha20_Poly1305 =>
+            res := Thin.crypto_aead_chacha20poly1305_decrypt
+              (m      => product_pointer,
+               mlen_p => product_realsize'Unchecked_Access,
+               nsec   => Thin.ICS.Null_Ptr,
+               c      => cipher_pointer,
+               clen   => cipher_size,
+               ad     => metadata_pointer,
+               adlen  => metadata_size,
+               npub   => nonce_pointer,
+               k      => skey_pointer);
+         when ChaCha20_Poly1305_IETF =>
+            res := Thin.crypto_aead_chacha20poly1305_ietf_decrypt
+              (m      => product_pointer,
+               mlen_p => product_realsize'Unchecked_Access,
+               nsec   => Thin.ICS.Null_Ptr,
+               c      => cipher_pointer,
+               clen   => cipher_size,
+               ad     => metadata_pointer,
+               adlen  => metadata_size,
+               npub   => nonce_pointer,
+               k      => skey_pointer);
+         when AES256_GCM =>
+            res := Thin.crypto_aead_aes256gcm_decrypt
+              (m      => product_pointer,
+               mlen_p => product_realsize'Unchecked_Access,
+               nsec   => Thin.ICS.Null_Ptr,
+               c      => cipher_pointer,
+               clen   => cipher_size,
+               ad     => metadata_pointer,
+               adlen  => metadata_size,
+               npub   => nonce_pointer,
+               k      => skey_pointer);
+      end case;
+
+      if res = 0 then
+         declare
+            result : constant String := convert (product_tank);
+         begin
+            return result (1 .. Natural (product_realsize));
+         end;
+      end if;
+      raise Sodium_AEAD_Failed
+        with "Message verification failed";
+   end AEAD_Decrypt;
+
 
 end Sodium.Functions;

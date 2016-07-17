@@ -47,6 +47,8 @@ package Sodium.Functions is
 
    subtype Encrypted_Data  is String;
    subtype Sealed_Data     is String;
+   subtype AEAD_Nonce      is String;
+   subtype AEAD_Key        is String;
 
    type Natural32 is mod 2 ** 32;
 
@@ -98,7 +100,13 @@ package Sodium.Functions is
    function Random_Symmetric_Key     return Symmetric_Key;
    function Random_Symmetric_Nonce   return Symmetric_Nonce;
    function Random_Auth_Key          return Auth_Key;
-   function Random_Hash_Key (Key_Size : Key_Size_Range) return Any_Key;
+
+   function Random_Hash_Key   (Key_Size : Key_Size_Range)
+                               return Any_Key;
+   function Random_AEAD_Key   (construction : AEAD_Construction := ChaCha20_Poly1305)
+                               return AEAD_Key;
+   function Random_AEAD_Nonce (construction : AEAD_Construction := ChaCha20_Poly1305)
+                               return AEAD_Nonce;
 
    --------------------------
    --  Password Functions  --
@@ -216,6 +224,32 @@ package Sodium.Functions is
    function Authentic_Message (message : String; authentication_tag : Auth_Tag;
                                authentication_key : Auth_Key) return Boolean;
 
+   -----------------------------------------------------
+   --  Authenticated Encryption with Additional Data  --
+   -----------------------------------------------------
+
+   function AEAD_Encrypt (data_to_encrypt : String;
+                          additional_data : String;
+                          secret_key      : AEAD_Key;
+                          unique_nonce    : AEAD_Nonce;
+                          construction    : AEAD_Construction := ChaCha20_Poly1305)
+                          return Encrypted_Data;
+
+   function AEAD_Decrypt (ciphertext      : String;
+                          additional_data : String;
+                          secret_key      : AEAD_Key;
+                          unique_nonce    : AEAD_Nonce;
+                          construction    : AEAD_Construction := ChaCha20_Poly1305)
+                          return String;
+
+   function AEAD_Cipher_Length     (plain_text   : String;
+                                    construction : AEAD_Construction := ChaCha20_Poly1305)
+                                    return Positive;
+
+   function AEAD_Clear_Text_Length (ciphertext   : Encrypted_Data;
+                                    construction : AEAD_Construction := ChaCha20_Poly1305)
+                                    return Positive;
+
    ------------------
    --  Exceptions  --
    ------------------
@@ -225,6 +259,7 @@ package Sodium.Functions is
    Sodium_Invalid_Input       : exception;
    Sodium_Wrong_Recipient     : exception;
    Sodium_Symmetric_Failed    : exception;
+   Sodium_AEAD_Failed         : exception;
 
 private
 
