@@ -51,6 +51,7 @@ package Sodium.Functions is
    type Natural32 is mod 2 ** 32;
 
    type Data_Criticality is (online_interactive, moderate, highly_sensitive);
+   type AEAD_Construction is (ChaCha20_Poly1305, ChaCha20_Poly1305_IETF, AES256_GCM);
 
    type Hash_State is private;
 
@@ -121,6 +122,7 @@ package Sodium.Functions is
 
    function As_Hexidecimal (binary : String) return String;
    function As_Binary (hexidecimal : String; ignore : String := "") return String;
+   procedure increment_nonce (nonce : in out String);
 
    -----------------------------
    --  Public Key Signatures  --

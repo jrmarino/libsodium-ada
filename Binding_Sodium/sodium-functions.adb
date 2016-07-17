@@ -1233,4 +1233,33 @@ package body Sodium.Functions is
       return (res = 0);
    end Authentic_Message;
 
+
+   -----------------------
+   --  increment_nonce  --
+   -----------------------
+   procedure increment_nonce (nonce : in out String)
+   is
+      arrow    : Natural := nonce'Last;
+      value    : Natural;
+      FF       : constant Character := Character'Val (16#FF#);
+      ultimate : constant String (nonce'Range) := (others => FF);
+   begin
+      if nonce = ultimate then
+         for z in nonce'Range loop
+            nonce (z) := ASCII.NUL;
+         end loop;
+         return;
+      end if;
+      loop
+         if nonce (arrow) = FF then
+            nonce (arrow) := ASCII.NUL;
+            arrow := arrow - 1;
+         else
+            value := Character'Pos (nonce (arrow));
+            nonce (arrow) := Character'Val (value + 1);
+            exit;
+         end if;
+      end loop;
+   end increment_nonce;
+
 end Sodium.Functions;
