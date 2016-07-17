@@ -37,7 +37,7 @@ begin
                                      additional_data => metadata,
                                      secret_key      => secret_key,
                                      unique_nonce    => msg_nonce);
-         Put_Line ("Back again:              " & clear_text);
+         Put_Line ("Back again             : " & clear_text);
       exception
          when others => Put_Line ("Convert to clear text failed");
       end;
@@ -67,7 +67,7 @@ begin
                                      secret_key      => secret_key,
                                      unique_nonce    => msg_nonce,
                                      construction    => AES256_GCM);
-         Put_Line ("Back again:              " & clear_text);
+         Put_Line ("Back again             : " & clear_text);
       exception
          when others => Put_Line ("Convert to clear text failed");
       end;
@@ -81,26 +81,30 @@ begin
       clear_text  : String (1 .. message'Length);
    begin
       Put_Line ("");
-      Put_Line ("Secret Key   (CC20IETF): " & As_Hexidecimal (secret_key));
-      Put_Line ("Nonce        (CC20IETF): " & As_Hexidecimal (msg_nonce));
+      if AES256_GCM_Available then
+         Put_Line ("Secret Key   (CC20IETF): " & As_Hexidecimal (secret_key));
+         Put_Line ("Nonce        (CC20IETF): " & As_Hexidecimal (msg_nonce));
 
-      cipher_text := AEAD_Encrypt (data_to_encrypt => message,
-                                   additional_data => metadata,
-                                   secret_key      => secret_key,
-                                   unique_nonce    => msg_nonce,
-                                   construction    => ChaCha20_Poly1305_IETF);
+         cipher_text := AEAD_Encrypt (data_to_encrypt => message,
+                                      additional_data => metadata,
+                                      secret_key      => secret_key,
+                                      unique_nonce    => msg_nonce,
+                                      construction    => ChaCha20_Poly1305_IETF);
 
-      Put_Line ("CipherText   (CC20IETF): " & As_Hexidecimal (cipher_text));
+         Put_Line ("CipherText   (CC20IETF): " & As_Hexidecimal (cipher_text));
 
-      begin
-         clear_text := AEAD_Decrypt (ciphertext      => cipher_text,
-                                     additional_data => metadata,
-                                     secret_key      => secret_key,
-                                     unique_nonce    => msg_nonce,
-                                     construction    => ChaCha20_Poly1305_IETF);
-         Put_Line ("Back again:              " & clear_text);
-      exception
-         when others => Put_Line ("Convert to clear text failed");
-      end;
+         begin
+            clear_text := AEAD_Decrypt (ciphertext      => cipher_text,
+                                        additional_data => metadata,
+                                        secret_key      => secret_key,
+                                        unique_nonce    => msg_nonce,
+                                        construction    => ChaCha20_Poly1305_IETF);
+            Put_Line ("Back again             : " & clear_text);
+         exception
+            when others => Put_Line ("Convert to clear text failed");
+         end;
+      else
+         Put_Line ("This CPU cannot perform AES256, skipping test ...");
+      end if;
    end;
 end Demo_Ada;

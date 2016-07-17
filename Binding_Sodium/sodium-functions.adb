@@ -1502,4 +1502,16 @@ package body Sodium.Functions is
    end AEAD_Decrypt;
 
 
+   ----------------------------
+   --  AES256_GCM_Available  --
+   ----------------------------
+   function AES256_GCM_Available return Boolean
+   is
+      use type Thin.IC.int;
+      res : Thin.IC.int;
+   begin
+      res := Thin.crypto_aead_aes256gcm_is_available;
+      return (res = 1);
+   end AES256_GCM_Available;
+
 end Sodium.Functions;

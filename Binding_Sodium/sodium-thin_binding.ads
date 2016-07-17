@@ -642,4 +642,11 @@ package Sodium.Thin_Binding is
       ctx  : crypto_aead_aes256gcm_state_Access) return IC.int;
    pragma Import (C, crypto_aead_aes256gcm_decrypt_detached_afternm);
 
+   ------------------------
+   --  AES Availability  --
+   ------------------------
+
+   function crypto_aead_aes256gcm_is_available return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_is_available);
+
 end Sodium.Thin_Binding;

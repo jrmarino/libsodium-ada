@@ -250,6 +250,8 @@ package Sodium.Functions is
                                     construction : AEAD_Construction := ChaCha20_Poly1305)
                                     return Positive;
 
+   function AES256_GCM_Available return Boolean;
+
    ------------------
    --  Exceptions  --
    ------------------
