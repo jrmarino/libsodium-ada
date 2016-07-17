@@ -474,9 +474,9 @@ package Sodium.Thin_Binding is
    ----------------------------------
 
    function crypto_aead_chacha20poly1305_encrypt
-     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
-      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
-      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+     (c    : ICS.chars_ptr; clen_p : NaCl_uint64_Access;
+      m    : ICS.chars_ptr; mlen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       nsec : ICS.chars_ptr;
       npub : ICS.chars_ptr;
       k    : ICS.chars_ptr) return IC.int;
@@ -516,9 +516,9 @@ package Sodium.Thin_Binding is
    ------------------------------
 
    function crypto_aead_chacha20poly1305_ietf_encrypt
-     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
-      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
-      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+     (c    : ICS.chars_ptr; clen_p : NaCl_uint64_Access;
+      m    : ICS.chars_ptr; mlen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       nsec : ICS.chars_ptr;
       npub : ICS.chars_ptr;
       k    : ICS.chars_ptr) return IC.int;
@@ -558,9 +558,9 @@ package Sodium.Thin_Binding is
    ---------------
 
    function crypto_aead_aes256gcm_encrypt
-     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
-      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
-      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+     (c    : ICS.chars_ptr; clen_p : NaCl_uint64_Access;
+      m    : ICS.chars_ptr; mlen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
       nsec : ICS.chars_ptr;
       npub : ICS.chars_ptr;
       k    : ICS.chars_ptr) return IC.int;

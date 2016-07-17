@@ -235,7 +235,7 @@ package Sodium.Functions is
                           construction    : AEAD_Construction := ChaCha20_Poly1305)
                           return Encrypted_Data;
 
-   function AEAD_Decrypt (ciphertext      : String;
+   function AEAD_Decrypt (ciphertext      : Encrypted_Data;
                           additional_data : String;
                           secret_key      : AEAD_Key;
                           unique_nonce    : AEAD_Nonce;
