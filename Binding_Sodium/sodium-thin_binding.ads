@@ -47,6 +47,14 @@ package Sodium.Thin_Binding is
    type crypto_generichash_state_Access is access all crypto_generichash_state;
    pragma Convention (C, crypto_generichash_state_Access);
 
+   type crypto_aead_aes256gcm_state is record
+      state : NaCl_block8  (0 .. 511);
+   end record;
+   for crypto_aead_aes256gcm_state'Alignment use 16;
+
+   type crypto_aead_aes256gcm_state_Access is access all crypto_aead_aes256gcm_state;
+   pragma Convention (C, crypto_aead_aes256gcm_state_Access);
+
    -----------------
    --  Constants  --
    -----------------
@@ -151,6 +159,18 @@ package Sodium.Thin_Binding is
 
    crypto_auth_BYTES    : NaCl_uint8 renames crypto_auth_hmacsha512256_BYTES;
    crypto_auth_KEYBYTES : NaCl_uint8 renames crypto_auth_hmacsha512256_KEYBYTES;
+
+   crypto_aead_chacha20poly1305_ietf_KEYBYTES  : constant NaCl_uint8 := 32;
+   crypto_aead_chacha20poly1305_ietf_NPUBBYTES : constant NaCl_uint8 := 12;
+   crypto_aead_chacha20poly1305_ietf_ABYTES    : constant NaCl_uint8 := 16;
+
+   crypto_aead_chacha20poly1305_KEYBYTES       : constant NaCl_uint8 := 32;
+   crypto_aead_chacha20poly1305_NPUBBYTES      : constant NaCl_uint8 := 8;
+   crypto_aead_chacha20poly1305_ABYTES         : constant NaCl_uint8 := 16;
+
+   crypto_aead_aes256gcm_KEYBYTES              : constant NaCl_uint8 := 32;
+   crypto_aead_aes256gcm_NPUBBYTES             : constant NaCl_uint8 := 12;
+   crypto_aead_aes256gcm_ABYTES                : constant NaCl_uint8 := 16;
 
    ------------------------
    --  New C Data Types  --
@@ -378,5 +398,178 @@ package Sodium.Thin_Binding is
                                 inlen   : NaCl_uint64;
                                 k       : ICS.chars_ptr) return IC.int;
    pragma Import (C, crypto_auth_verify);
+
+   ----------------------------------
+   --  original ChaCha20-Poly1305  --
+   ----------------------------------
+
+   function crypto_aead_chacha20poly1305_encrypt
+     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_encrypt);
+
+   function crypto_aead_chacha20poly1305_decrypt
+     (m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_decrypt);
+
+   function crypto_aead_chacha20poly1305_encrypt_detached
+     (c    : ICS.chars_ptr;
+      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      m    : ICS.chars_ptr; mlen     : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_encrypt_detached);
+
+   function crypto_aead_chacha20poly1305_decrypt_detached
+     (m    : ICS.chars_ptr;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      mac  : ICS.chars_ptr;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_decrypt_detached);
+
+   ------------------------------
+   --  IETF ChaCha20-Poly1305  --
+   ------------------------------
+
+   function crypto_aead_chacha20poly1305_ietf_encrypt
+     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_ietf_encrypt);
+
+   function crypto_aead_chacha20poly1305_ietf_decrypt
+     (m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_ietf_decrypt);
+
+   function crypto_aead_chacha20poly1305_ietf_encrypt_detached
+     (c    : ICS.chars_ptr;
+      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      m    : ICS.chars_ptr; mlen     : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_ietf_encrypt_detached);
+
+   function crypto_aead_chacha20poly1305_ietf_decrypt_detached
+     (m    : ICS.chars_ptr;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      mac  : ICS.chars_ptr;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_chacha20poly1305_ietf_decrypt_detached);
+
+   ---------------
+   --  AES-GCM  --
+   ---------------
+
+   function crypto_aead_aes256gcm_encrypt
+     (c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      m    : ICS.chars_ptr; mlen  : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_encrypt);
+
+   function crypto_aead_aes256gcm_decrypt
+     (m    : ICS.chars_ptr; mlen_p : System.Address;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_decrypt);
+
+   function crypto_aead_aes256gcm_encrypt_detached
+     (c    : ICS.chars_ptr;
+      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      m    : ICS.chars_ptr; mlen     : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen    : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_encrypt_detached);
+
+   function crypto_aead_aes256gcm_decrypt_detached
+     (m    : ICS.chars_ptr;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen  : NaCl_uint64;
+      mac  : ICS.chars_ptr;
+      ad   : ICS.chars_ptr; adlen : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      k    : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_decrypt_detached);
+
+   -----------------------------------
+   --  AES-GCM with Precalculation  --
+   -----------------------------------
+
+   function crypto_aead_aes256gcm_beforenm
+     (ctx : crypto_aead_aes256gcm_state_Access;
+      k   : ICS.chars_ptr) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_beforenm);
+
+   function crypto_aead_aes256gcm_encrypt_afternm
+     (c    : ICS.chars_ptr; clen_p : System.Address;
+      m    : ICS.chars_ptr; mlen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      ctx  : crypto_aead_aes256gcm_state_Access) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_encrypt_afternm);
+
+   function crypto_aead_aes256gcm_decrypt_afternm
+     (m    : ICS.chars_ptr; mlen_p : System.Address;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      ctx  : crypto_aead_aes256gcm_state_Access) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_decrypt_afternm);
+
+   function crypto_aead_aes256gcm_encrypt_detached_afternm
+     (c    : ICS.chars_ptr;
+      mac  : ICS.chars_ptr; maclen_p : System.Address;
+      m    : ICS.chars_ptr; mlen   : NaCl_uint64;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
+      nsec : ICS.chars_ptr;
+      npub : ICS.chars_ptr;
+      ctx  : crypto_aead_aes256gcm_state_Access) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_encrypt_detached_afternm);
+
+   function crypto_aead_aes256gcm_decrypt_detached_afternm
+     (m    : ICS.chars_ptr;
+      nsec : ICS.chars_ptr;
+      c    : ICS.chars_ptr; clen   : NaCl_uint64;
+      mac  : ICS.chars_ptr;
+      ad   : ICS.chars_ptr; adlen  : NaCl_uint64;
+      npub : ICS.chars_ptr;
+      ctx  : crypto_aead_aes256gcm_state_Access) return IC.int;
+   pragma Import (C, crypto_aead_aes256gcm_decrypt_detached_afternm);
 
 end Sodium.Thin_Binding;
