@@ -30,7 +30,6 @@ package Sodium.Thin_Binding is
       buf       : NaCl_block8  (0 .. 255);
       buflen    : IC.size_t;
       last_node : NaCl_uint8;
-      padding64 : NaCl_block8  (0 .. 26);
    end record;
 
    for crypto_generichash_blake2b_state'Alignment use 64;
