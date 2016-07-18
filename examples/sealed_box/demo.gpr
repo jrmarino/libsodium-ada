@@ -1,4 +1,4 @@
-with "../Common.gpr";
+with "../common.gpr";
 
 project Demo is
 

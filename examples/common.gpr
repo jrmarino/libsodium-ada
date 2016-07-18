@@ -8,18 +8,20 @@ project Common is
          when "windows" =>
             for Default_Switches ("C") use ("-I", "../../../libsodium-1.0.10-mingw/libsodium-win32/include");
          when "unix" =>
-            null;
+            for Default_Switches ("C") use ("-I", "/usr/local/include");
       end case;
    end Compiler;
 
    package Linker is
       NaCl := ("../../libsodium-1.0.10-mingw/libsodium-win32/lib/libsodium.a");
+      NixSalt := ("-L", "/usr/local/lib", "-lsodium");
       case Opsys is
          when "windows" =>
             for Default_Switches ("C")   use NaCl;
             for Default_Switches ("Ada") use NaCl;
          when "unix" =>
-            null;
+            for Default_Switches ("C")   use NixSalt;
+            for Default_Switches ("Ada") use NixSalt;
       end case;
    end Linker;
 
